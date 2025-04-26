@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String?
+  googleId     String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  profiles     Profile[]
+}
+
+model Profile {
+  id          String    @id @default(uuid())
+  name        String
+  age         Int?
+  gender      String?
+  fitnessLevel String?
+  imageUrl    String?
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workouts    Workout[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Workout {
+  id          String     @id @default(uuid())
+  title       String
+  day         Day
+  profileId   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  exercises   Exercise[]
+  profile     Profile?    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Exercise {
+  id          String     @id @default(uuid())
+  name        String
+  workoutId   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  sets        Set[]
+  workout     Workout    @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+}
+
+model Set {
+  id          String     @id @default(uuid())
+  reps        Int
+  weight      Float
+  exerciseId  String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  exercise    Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
