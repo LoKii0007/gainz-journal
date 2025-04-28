@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { 
   Accordion, 
   AccordionContent, 
@@ -7,11 +7,7 @@ import {
 } from "./ui/accordion";
 import { Button } from "./ui/button";
 import { Plus } from "lucide-react";
-import { Workout, Exercise, Set } from "@/types/workout";
-import axios from "axios";
-import { useAppSelector } from "@/lib/hooks";
-import toast from "react-hot-toast";
-import { Skeleton } from "./ui/skeleton";
+import { Workout, Exercise } from "@/types/workout";
 import AddExerciseDialog from "./AddExerciseDialog";
 import ExerciseCard from "./ExerciseCard";
 

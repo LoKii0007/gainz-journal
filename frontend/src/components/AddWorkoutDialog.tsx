@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { daysOfWeek } from "@/lib/helpers";
 import { Button } from "./ui/button";
 import axios from "axios";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";

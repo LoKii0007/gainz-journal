@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, ChevronRight, MoreVertical } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { setWorkouts } from "../redux/slices/workoutSlice";
 import { Workout, Exercise } from "../types/workout";

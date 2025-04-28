@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Profile } from "./authSlice";
+import { Profile } from "@/types/auth";
 
 interface ProfileState {
   profiles: Profile[];
@@ -30,13 +30,13 @@ const profileSlice = createSlice({
       state.profiles.push(action.payload);
     },
     updateProfile: (state, action: PayloadAction<Profile>) => {
-      const index = state.profiles.findIndex(p => p.id === action.payload.id);
+      const index = state.profiles.findIndex((p : Profile) => p.id === action.payload.id);
       if (index !== -1) {
         state.profiles[index] = action.payload;
       }
     },
     deleteProfile: (state, action: PayloadAction<string>) => {
-      state.profiles = state.profiles.filter(p => p.id !== action.payload);
+      state.profiles = state.profiles.filter((p : Profile) => p.id !== action.payload);
     },
   },
 });
