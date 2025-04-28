@@ -13,7 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const origins = [
-  process.env.CORS_ORIGIN,
+  "https://gainz-journal.vercel.app",
   "http://localhost:5173",
 ];
 
