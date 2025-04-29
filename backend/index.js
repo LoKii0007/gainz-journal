@@ -31,6 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Routes
+app.get("/test", (req, res) => {
+  res.send("backend is running");
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/workout", workoutRoutes);
