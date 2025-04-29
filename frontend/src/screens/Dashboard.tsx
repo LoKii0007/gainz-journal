@@ -80,7 +80,6 @@ const Dashboard = () => {
     }
   };
 
-
   return (
     <div className="space-y-6 max-w-screen-lg mx-auto p-2 md:p-4">
       <header className="flex justify-between items-center p-2 md:p-4">
@@ -90,25 +89,7 @@ const Dashboard = () => {
             {format(new Date(), "EEEE, MMMM d")}
           </p>
         </div>
-
-        {user && (
-          <div className="flex items-center gap-2">
-            <AddWorkoutDialog />
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-              {user.profiles[0]?.imageUrl ? (
-                <img
-                  src={user.profiles[0]?.imageUrl}
-                  alt={user.profiles[0]?.name}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-medium">
-                  {user.profiles[0]?.name?.charAt(0)}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
+        <AddWorkoutDialog />
       </header>
 
       {loading ? (

@@ -13,12 +13,6 @@ const workoutSlice = createSlice({
   name: "workout",
   initialState,
   reducers: {
-    setWorkoutLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setWorkoutError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
     setWorkouts: (state, action: PayloadAction<Workout[]>) => {
       state.workouts = action.payload;
     },
@@ -39,9 +33,6 @@ const workoutSlice = createSlice({
       if (state.selectedWorkout?.id === action.payload) {
         state.selectedWorkout = null;
       }
-    },
-    setSelectedWorkout: (state, action: PayloadAction<Workout | null>) => {
-      state.selectedWorkout = action.payload;
     },
     addExerciseToWorkout: (state, action: PayloadAction<{ workoutId: string, exercise: Exercise }>) => {
       const { workoutId, exercise } = action.payload;
@@ -93,13 +84,10 @@ const workoutSlice = createSlice({
 });
 
 export const {
-  setWorkoutLoading,
-  setWorkoutError,
   setWorkouts,
   addWorkout,
   updateWorkout,
   deleteWorkout,
-  setSelectedWorkout,
   addExerciseToWorkout,
   removeExerciseFromWorkout,
   reorderExercisesInWorkout

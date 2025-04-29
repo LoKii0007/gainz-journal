@@ -15,14 +15,15 @@ import { Button } from "./ui/button";
 import axios from "axios";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import toast from "react-hot-toast";
-import { updateUser } from "@/redux/slices/authSlice";
 import { Days } from "@/types/workout";
+import { addWorkout } from "@/redux/slices/workoutSlice";
+import { updateUser } from "@/redux/slices/authSlice";
 
-// Interface for exercise items in temp list
 interface ExerciseItem {
   name: string;
   id?: string;
 }
+
 
 const AddWorkoutDialog = () => {
   const [exerciseName, setExerciseName] = useState("");
@@ -119,13 +120,13 @@ const AddWorkoutDialog = () => {
             profiles: [response.data.profile],
           };
 
-          // Update the user in Redux store
           dispatch(updateUser(updatedUser));
-
           toast.success("Profile created and workout added successfully!");
         } else {
           toast.success("Workout created successfully!");
         }
+
+        dispatch(addWorkout(response.data.workout));
 
         // Reset form
         setFormState(initialState);

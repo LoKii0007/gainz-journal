@@ -10,28 +10,20 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 const origins = [
-  "https://gainz-journal.vercel.app",
-  "http://localhost:5173",
+  "https://gainz-journal.vercel.app"
 ];
+
+if (process.env.NODE_ENV === "development") {
+  origins.push("http://localhost:5173");
+}
 
 // Middleware
 app.use(
   cors({
-    origin: function(origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      if (origins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+    origin: origins,
   })
 );
 app.use(express.json());
