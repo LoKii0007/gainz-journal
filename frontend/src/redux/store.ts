@@ -3,7 +3,6 @@ import authReducer from "./slices/authSlice";
 import exerciseReducer from "./slices/exerciseSlice";
 import workoutReducer from "./slices/workoutSlice";
 import profileReducer from "./slices/profileSlice";
-import uiReducer from "./slices/uiSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +10,6 @@ export const store = configureStore({
     exercise: exerciseReducer,
     workout: workoutReducer,
     profile: profileReducer,
-    ui: uiReducer,
   },
 });
 

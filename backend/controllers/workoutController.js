@@ -123,7 +123,8 @@ const createWorkout = async (req, res) => {
         profile = await prisma.profile.create({
           data: {
             name: `Profile ${userProfiles.length + 1}`, // Default name from email
-            userId: req.user.id
+            userId: req.user.id,
+            active: true
           }
         });
         profileId = profile.id;
@@ -147,8 +148,7 @@ const createWorkout = async (req, res) => {
           include: {
             sets: true
           }
-        },
-        profile: true
+        }
       }
     });
 

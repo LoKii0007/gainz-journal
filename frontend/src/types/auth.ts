@@ -1,17 +1,4 @@
-export interface User {
-  id: string;
-  email: string;
-  profiles: Profile[];
-}
-
-export interface Profile {
-  id: string;
-  name: string;
-  age?: number;
-  gender?: string;
-  imageUrl?: string;
-  userId: string;
-}
+import { User } from "./user";
 
 export interface AuthState {
   user: User | null;

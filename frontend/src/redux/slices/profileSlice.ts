@@ -1,49 +1,29 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Profile } from "@/types/auth";
-
-interface ProfileState {
-  profiles: Profile[];
-  loading: boolean;
-  error: string | null;
-}
-
-const initialState: ProfileState = {
-  profiles: [],
-  loading: false,
-  error: null,
-};
+import { Profile } from "@/types/user";
 
 const profileSlice = createSlice({
   name: "profile",
-  initialState,
+  initialState : [] as Profile[],
   reducers: {
-    setProfileLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setProfileError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
-    setProfiles: (state, action: PayloadAction<Profile[]>) => {
-      state.profiles = action.payload;
+    setProfiles: (_state, action: PayloadAction<Profile[]>) => {
+      return action.payload;
     },
     addProfile: (state, action: PayloadAction<Profile>) => {
-      state.profiles.push(action.payload);
+      state.push(action.payload);
     },
     updateProfile: (state, action: PayloadAction<Profile>) => {
-      const index = state.profiles.findIndex((p : Profile) => p.id === action.payload.id);
+      const index = state.findIndex((p : Profile) => p.id === action.payload.id);
       if (index !== -1) {
-        state.profiles[index] = action.payload;
+        state[index] = action.payload;
       }
     },
     deleteProfile: (state, action: PayloadAction<string>) => {
-      state.profiles = state.profiles.filter((p : Profile) => p.id !== action.payload);
+      state = state.filter((p : Profile) => p.id !== action.payload);
     },
   },
 });
 
 export const {
-  setProfileLoading,
-  setProfileError,
   setProfiles,
   addProfile,
   updateProfile,

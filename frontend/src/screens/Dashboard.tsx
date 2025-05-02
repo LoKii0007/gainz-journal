@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
 import { setWorkouts } from "../redux/slices/workoutSlice";
@@ -11,12 +11,13 @@ import { getDayOfWeek } from "../lib/helpers";
 import AddWorkoutDialog from "../components/AddWorkoutDialog";
 import ExerciseCard from "../components/ExerciseCard";
 import AddExerciseDialog from "../components/AddExerciseDialog";
+import DeleteDialog from "@/components/DeleteDialog";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
-  const workouts = useAppSelector((state) => state.workout.workouts);
+  const workouts = useAppSelector((state) => state.workout);
   const [todayWorkout, setTodayWorkout] = useState<Workout | null>(null);
   const [todayExercises, setTodayExercises] = useState<Exercise[]>([]);
   const auth = useSelector((state: any) => state.auth);
@@ -26,6 +27,15 @@ const Dashboard = () => {
       fetchWorkouts();
     }
   }, [user]);
+
+  const handleTodaysWorkout = useCallback((workouts: Workout[]) => {
+    const today = getDayOfWeek(new Date());
+    const todayWo = workouts.find(
+      (w: Workout) => w.day.toLowerCase() === today.toLowerCase()
+    );
+    setTodayWorkout(todayWo || null);
+    setTodayExercises(todayWo?.exercises || []);
+  }, []);
 
   const fetchWorkouts = async () => {
     if (!user) return;
@@ -40,16 +50,7 @@ const Dashboard = () => {
       );
 
       dispatch(setWorkouts(res.data.workouts));
-
-      // Find today's workout
-      const today = getDayOfWeek(new Date());
-      const todayWo = res.data.workouts.find(
-        (w: Workout) => w.day.toLowerCase() === today.toLowerCase()
-      );
-      if (todayWo) {
-        setTodayWorkout(todayWo);
-        setTodayExercises(todayWo.exercises || []);
-      }
+      handleTodaysWorkout(res.data.workouts);
     } catch (err: any) {
       toast.error(
         err.response?.data?.error ||
@@ -73,12 +74,16 @@ const Dashboard = () => {
       setTodayWorkout(updatedWorkout);
 
       // Update the workouts in the redux store
-      const updatedWorkouts = workouts.map((w) =>
+      const updatedWorkouts = workouts.map((w: Workout) =>
         w.id === todayWorkout.id ? updatedWorkout : w
       );
       dispatch(setWorkouts(updatedWorkouts));
     }
   };
+
+  useEffect(() => {
+    handleTodaysWorkout(workouts);
+  }, [workouts]);
 
   return (
     <div className="space-y-6 max-w-screen-lg mx-auto p-2 md:p-4">
@@ -104,9 +109,12 @@ const Dashboard = () => {
                 <h2 className="text-xl font-semibold capitalize">
                   {todayWorkout.title}
                 </h2>
-                <span className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground">
-                  {todayWorkout.day}
-                </span>
+                <div className="flex items-center gap-2">
+                  <DeleteDialog workoutId={todayWorkout.id} />
+                  <span className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground">
+                    {todayWorkout.day}
+                  </span>
+                </div>
               </div>
 
               {todayExercises.length > 0 ? (

@@ -73,7 +73,11 @@ const loginUser = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        profiles: true
+        profiles: {
+          where: {
+            active: true
+          }
+        }
       }
     });
 

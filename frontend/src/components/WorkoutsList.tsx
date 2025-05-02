@@ -45,7 +45,7 @@ const WorkoutsList: React.FC<WorkoutsListProps> = ({ workouts, onWorkoutUpdate }
 
   return (
     <Accordion type="single" collapsible className="w-full">
-      {workouts.map((workout) => (
+      {workouts?.map((workout) => (
         <AccordionItem key={workout.id} value={workout.id} className="border-b">
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center justify-between w-full pr-4">

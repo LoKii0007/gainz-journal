@@ -8,25 +8,24 @@ export type WorkoutType =
   | "Full Body"
   | "Rest";
 
-export type Days = "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+export type Days =
+  | "SUNDAY"
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY";
 
-export const Days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
-
-export interface Workout {
-  id: string;
-  title: string;
-  day: Days;
-  profileId: string;
-  createdAt: string;
-  exercises: Exercise[];
-}
-
-export interface WorkoutState {
-  workouts: Workout[];
-  loading: boolean;
-  error: string | null;
-  selectedWorkout: Workout | null;
-}
+export const Days = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
 
 export interface Set {
   id: string;
@@ -44,10 +43,17 @@ export interface Exercise {
   createdAt: string;
 }
 
+export interface Workout {
+  id: string;
+  title: string;
+  day: Days;
+  profileId: string;
+  createdAt: string;
+  exercises: Exercise[];
+}
+
 export interface ExerciseState {
   exercises: Exercise[];
-  loading: boolean;
-  error: string | null;
   selectedExercise: Exercise | null;
   exerciseHistory: Exercise[];
 }

@@ -3,8 +3,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: ExerciseState = {
   exercises: [],
-  loading: false,
-  error: null,
   selectedExercise: null,
   exerciseHistory: []
 };
@@ -13,12 +11,6 @@ const exerciseSlice = createSlice({
   name: "exercise",
   initialState,
   reducers: {
-    setExerciseLoading: (state, action: PayloadAction<boolean>) => {
-      state.loading = action.payload;
-    },
-    setExerciseError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
     setExercises: (state, action: PayloadAction<Exercise[]>) => {
       state.exercises = action.payload;
     },
@@ -95,8 +87,6 @@ const exerciseSlice = createSlice({
 });
 
 export const {
-  setExerciseLoading,
-  setExerciseError,
   setExercises,
   addExercise,
   updateExercise,

@@ -13,7 +13,7 @@ const Workouts = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { token } = useAppSelector((state) => state.auth);
-  const workouts = useAppSelector((state) => state.workout.workouts);
+  const workouts = useAppSelector((state) => state.workout);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +33,6 @@ const Workouts = () => {
         }`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       dispatch(setWorkouts(res.data.workouts));
     } catch (err: any) {
       toast.error(

@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
@@ -17,15 +17,13 @@ import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import { Days } from "@/types/workout";
 import { addWorkout } from "@/redux/slices/workoutSlice";
-import { updateUser } from "@/redux/slices/authSlice";
-
+import { addProfile } from "@/redux/slices/profileSlice";
 interface ExerciseItem {
   name: string;
   id?: string;
 }
 
-
-const AddWorkoutDialog = () => {
+const AddWorkoutDialog = React.memo(() => {
   const [exerciseName, setExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const initialState = {
@@ -90,11 +88,10 @@ const AddWorkoutDialog = () => {
       try {
         setLoading(true);
 
-        // Create workout data - don't require profileId, backend will handle it
         const workoutData = {
           title: workoutTitle,
           day: workoutDay,
-          profileId: user?.profiles?.[0]?.id, // Can be undefined, backend will create profile
+          profileId: user?.profiles?.[0]?.id,
           exercises: exerciseList.map((ex) => ({
             name: ex.name,
             sets: [],
@@ -109,23 +106,15 @@ const AddWorkoutDialog = () => {
           }
         );
 
-        // If a new profile was created, update the user state
+        console.log("response", response.data);
         if (
           response.data.profile &&
           (!user?.profiles || user.profiles.length === 0)
         ) {
-          // Create a copy of the user with the new profile
-          const updatedUser = {
-            ...user!,
-            profiles: [response.data.profile],
-          };
+          dispatch(addProfile(response.data.profile));
+        } 
 
-          dispatch(updateUser(updatedUser));
-          toast.success("Profile created and workout added successfully!");
-        } else {
-          toast.success("Workout created successfully!");
-        }
-
+        toast.success("Workout created successfully!");
         dispatch(addWorkout(response.data.workout));
 
         // Reset form
@@ -186,7 +175,7 @@ const AddWorkoutDialog = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {Days.map((day) => (
-                      <SelectItem key={day} value={day} className="capitalize" >
+                      <SelectItem key={day} value={day} className="capitalize">
                         {day}
                       </SelectItem>
                     ))}
@@ -252,7 +241,11 @@ const AddWorkoutDialog = () => {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Workout"}
+                {loading ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Create Workout"
+                )}
               </Button>
             </div>
           </form>
@@ -260,6 +253,6 @@ const AddWorkoutDialog = () => {
       </Dialog>
     </>
   );
-};
+});
 
 export default AddWorkoutDialog;
