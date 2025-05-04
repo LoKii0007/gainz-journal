@@ -17,8 +17,6 @@ import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import { Days } from "@/types/workout";
 import { addWorkout } from "@/redux/slices/workoutSlice";
-import { addProfile } from "@/redux/slices/profileSlice";
-import { updateProfileId } from "@/redux/slices/authSlice";
 
 interface ExerciseItem {
   name: string;
