@@ -53,16 +53,18 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-md">
-      <Card className="mb-6">
-        <CardHeader className="pb-2">
+    <div className="container mx-auto p-4 max-w-md space-y-4">
+      <Card className="">
+        <CardHeader className="p-4">
           <div className="flex items-center space-x-4">
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-8 w-8">
               <AvatarImage src="" alt="User" />
-              <AvatarFallback>{getUserInitials()}</AvatarFallback>
+              <AvatarFallback className="text-sm">
+                {getUserInitials()}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-xl">{email}</CardTitle>
+              <CardTitle className="text-sm truncate">{email}</CardTitle>
             </div>
           </div>
         </CardHeader>
