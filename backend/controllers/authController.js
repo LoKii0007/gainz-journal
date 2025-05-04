@@ -1,6 +1,6 @@
-const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
-const generateToken = require('../utils/generateToken');
+const bcrypt = require("bcryptjs");
+const { PrismaClient } = require("@prisma/client");
+const generateToken = require("../utils/generateToken");
 
 const prisma = new PrismaClient();
 
@@ -12,16 +12,18 @@ const registerUser = async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({ message: 'Please provide all required fields' });
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields" });
     }
 
     // Check if user exists
     const userExists = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Hash password
@@ -35,13 +37,13 @@ const registerUser = async (req, res) => {
         password: hashedPassword,
         profiles: {
           create: {
-            name
-          }
-        }
+            name,
+          },
+        },
       },
       include: {
-        profiles: true
-      }
+        profiles: true,
+      },
     });
 
     if (user) {
@@ -49,16 +51,16 @@ const registerUser = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
-          profiles: user.profiles
+          profiles: user.profiles,
         },
-        token: generateToken(user.id)
+        token: generateToken(user.id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: "Invalid user data" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -75,34 +77,35 @@ const loginUser = async (req, res) => {
       include: {
         profiles: {
           where: {
-            active: true
-          }
-        }
-      }
+            active: true,
+          },
+        },
+      },
     });
 
     if (!user || !user.password) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     res.json({
       user: {
         id: user.id,
         email: user.email,
-        profiles: user.profiles
       },
-      token: generateToken(user.id)
+      currentProfileId: user?.profiles[0]?.id,
+      profiles: user?.profiles,
+      token: generateToken(user.id),
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error("Error in loginUser:", error.message);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -114,25 +117,30 @@ const getUser = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        profiles: true
-      }
+        profiles: {
+          where: {
+            active: true,
+          },
+        },
+      },
     });
 
     res.json({
       user: {
         id: user.id,
         email: user.email,
-        profiles: user.profiles
-      }
+      },
+      profiles: user?.profiles,
+      currentProfileId: user?.profiles[0]?.id,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 module.exports = {
   registerUser,
   loginUser,
-  getUser
-}; 
+  getUser,
+};

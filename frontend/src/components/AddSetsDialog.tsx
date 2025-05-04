@@ -67,6 +67,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
               reps: set.reps,
               weight: set.weight,
               exerciseId: exercise.id,
+              profileId: localStorage.getItem("currentProfileId"),
             },
             {
               headers: { Authorization: `Bearer ${token}` },

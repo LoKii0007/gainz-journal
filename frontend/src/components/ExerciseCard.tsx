@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Exercise, Set } from "@/types/workout";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import AddSetsDialog from "./AddSetsDialog";
-import { 
-  Dumbbell, 
-  Edit, 
-  Trash, 
+import {
+  Dumbbell,
+  Edit,
+  Trash,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  HistoryIcon,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -22,33 +23,45 @@ import { Label } from "./ui/label";
 import { useAppSelector } from "@/lib/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { groupBy } from "lodash";
+import { format } from "date-fns";
 
 interface ExerciseCardProps {
   exercise: Exercise;
   onExerciseDeleted?: (exerciseId: string) => void;
 }
 
-const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, onExerciseDeleted }) => {
+const ExerciseCard: React.FC<ExerciseCardProps> = ({
+  exercise: initialExercise,
+  onExerciseDeleted,
+}) => {
   const [exercise, setExercise] = useState<Exercise>(initialExercise);
   const [editingSet, setEditingSet] = useState<Set | null>(null);
   const [deletingSet, setDeletingSet] = useState<Set | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeleteExerciseDialogOpen, setIsDeleteExerciseDialogOpen] = useState(false);
+  const [isDeleteExerciseDialogOpen, setIsDeleteExerciseDialogOpen] =
+    useState(false);
   const [newReps, setNewReps] = useState(0);
   const [newWeight, setNewWeight] = useState(0);
   const [loading, setLoading] = useState(false);
-  
-  const { token } = useAppSelector(state => state.auth);
-  
+
+  const { token } = useAppSelector((state) => state.auth);
+
+  const dayStart = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }, []);
+
   // Handle sets being added
   const handleSetsAdded = (newSets: Set[]) => {
-    setExercise(prev => ({
+    setExercise((prev) => ({
       ...prev,
-      sets: [...prev.sets, ...newSets]
+      sets: [...prev.sets, ...newSets],
     }));
   };
-  
+
   // Open edit dialog for a set
   const openEditDialog = (set: Set) => {
     setEditingSet(set);
@@ -56,70 +69,66 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
     setNewWeight(set.weight);
     setIsEditDialogOpen(true);
   };
-  
+
   // Open delete dialog for a set
   const openDeleteDialog = (set: Set) => {
     setDeletingSet(set);
     setIsDeleteDialogOpen(true);
   };
-  
+
   // Update set
   const handleUpdateSet = async () => {
     if (!editingSet) return;
-    
+
     try {
       setLoading(true);
-      
+
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/set/${editingSet.id}`,
         {
           reps: newReps,
-          weight: newWeight
+          weight: newWeight,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       // Update local state with updated set
-      setExercise(prev => ({
+      setExercise((prev) => ({
         ...prev,
-        sets: prev.sets.map(set => 
-          set.id === editingSet.id 
-            ? { ...response.data.set }
-            : set
-        )
+        sets: prev.sets.map((set) =>
+          set.id === editingSet.id ? { ...response.data.set } : set
+        ),
       }));
-      
+
       toast.success("Set updated successfully");
       setIsEditDialogOpen(false);
-      
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update set");
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Delete set
   const handleDeleteSet = async () => {
     if (!deletingSet) return;
-    
+
     try {
       setLoading(true);
-      
+
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/set/${deletingSet.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       // Remove the deleted set from local state
-      setExercise(prev => ({
+      setExercise((prev) => ({
         ...prev,
-        sets: prev.sets.filter(set => set.id !== deletingSet.id)
+        sets: prev.sets.filter((set) => set.id !== deletingSet.id),
       }));
-      
+
       toast.success("Set deleted successfully");
       setIsDeleteDialogOpen(false);
-      
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to delete set");
     } finally {
@@ -131,27 +140,41 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
   const handleDeleteExercise = async () => {
     try {
       setLoading(true);
-      
+
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/exercise/${exercise.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       toast.success("Exercise deleted successfully");
       setIsDeleteExerciseDialogOpen(false);
-      
+
       // Notify parent component
       if (onExerciseDeleted) {
         onExerciseDeleted(exercise.id);
       }
-      
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to delete exercise");
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const setsHistory = useMemo(() => {
+    const filteredSets = exercise.sets.filter(
+      (s) => new Date(s.createdAt) < dayStart
+    );
+
+    // Group sets by date string (e.g., '2025-05-03')
+    const groupedByDay = groupBy(filteredSets, (s) => {
+      const date = new Date(s.createdAt);
+      return date.toISOString().split("T")[0]; // formats to YYYY-MM-DD
+    });
+
+    // Convert to nested array of sets grouped by day
+    return Object.values(groupedByDay);
+  }, [exercise.sets, dayStart]);
+
   return (
     <>
       <Card className="w-full">
@@ -161,9 +184,9 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
             {exercise.name}
           </CardTitle>
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50"
               onClick={() => setIsDeleteExerciseDialogOpen(true)}
             >
@@ -181,31 +204,55 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
                 <div className="col-span-4">Weight</div>
                 <div className="col-span-4">Actions</div>
               </div>
-              {exercise.sets.map((set, index) => (
-                <div key={set.id} className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
-                  <div className="col-span-1">{index + 1}</div>
-                  <div className="col-span-3">{set.reps}</div>
-                  <div className="col-span-4">{set.weight} kg</div>
-                  <div className="col-span-4 flex items-center space-x-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 px-2 text-xs flex items-center"
-                      onClick={() => openEditDialog(set)}
-                    >
-                      <Edit size={14} className="mr-1" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 px-2 text-xs flex items-center text-red-500 hover:text-red-600 hover:bg-red-50"
-                      onClick={() => openDeleteDialog(set)}
-                    >
-                      <Trash size={14} className="mr-1" />
-                    </Button>
+              {exercise.sets
+                .filter((s) => new Date(s.createdAt) > dayStart)
+                .map((set, index) => (
+                  <div
+                    key={set.id}
+                    className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center"
+                  >
+                    <div className="col-span-1">{index + 1}</div>
+                    <div className="col-span-3">{set.reps}</div>
+                    <div className="col-span-4">{set.weight} kg</div>
+                    <div className="col-span-4 flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs flex items-center"
+                        onClick={() => openEditDialog(set)}
+                      >
+                        <Edit size={14} className="mr-1" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs flex items-center text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => openDeleteDialog(set)}
+                      >
+                        <Trash size={14} className="mr-1" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              {setsHistory.map((setOfDay) =>
+                setOfDay.map((set, index) => (
+                  <>
+                    <div key={set.id}>
+                      <div className="text-sm text-muted-foreground py-2 mb-0 text-center flex items-center gap-2">
+                        <HistoryIcon size={16} />
+                        <span>
+                          {format(new Date(set.createdAt), "MMM d, yyyy")}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
+                        <div className="col-span-1">{index + 1}</div>
+                        <div className="col-span-3">{set.reps}</div>
+                        <div className="col-span-4">{set.weight} kg</div>
+                      </div>
+                    </div>
+                  </>
+                ))
+              )}
             </div>
           ) : (
             <div className="text-sm text-muted-foreground py-2 text-center">
@@ -241,21 +288,28 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
                   min="0"
                   step="0.5"
                   value={newWeight}
-                  onChange={(e) => setNewWeight(parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    setNewWeight(parseFloat(e.target.value) || 0)
+                  }
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              onClick={handleUpdateSet} 
+            <Button
+              onClick={handleUpdateSet}
               disabled={loading || newReps <= 0 || newWeight <= 0}
               className="gap-1"
             >
-              {loading ? "Updating..." : (
+              {loading ? (
+                "Updating..."
+              ) : (
                 <>
                   <Check size={16} />
                   Update
@@ -277,19 +331,26 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
             <p className="text-sm text-muted-foreground mt-1">
               Reps: {deletingSet?.reps} | Weight: {deletingSet?.weight} kg
             </p>
-            <p className="text-sm text-red-500 mt-2">This action cannot be undone.</p>
+            <p className="text-sm text-red-500 mt-2">
+              This action cannot be undone.
+            </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteSet} 
+            <Button
+              variant="destructive"
+              onClick={handleDeleteSet}
               disabled={loading}
               className="gap-1"
             >
-              {loading ? "Deleting..." : (
+              {loading ? (
+                "Deleting..."
+              ) : (
                 <>
                   <Trash size={16} />
                   Delete
@@ -301,7 +362,10 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
       </Dialog>
 
       {/* Delete Exercise Dialog */}
-      <Dialog open={isDeleteExerciseDialogOpen} onOpenChange={setIsDeleteExerciseDialogOpen}>
+      <Dialog
+        open={isDeleteExerciseDialogOpen}
+        onOpenChange={setIsDeleteExerciseDialogOpen}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -310,23 +374,34 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
             </DialogTitle>
           </DialogHeader>
           <div className="py-3">
-            <p>Are you sure you want to delete the exercise <span className="font-semibold">{exercise.name}</span>?</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              This will permanently delete all {exercise.sets.length} sets associated with this exercise.
+            <p>
+              Are you sure you want to delete the exercise{" "}
+              <span className="font-semibold">{exercise.name}</span>?
             </p>
-            <p className="text-sm text-red-500 mt-2 font-medium">This action cannot be undone.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              This will permanently delete all {exercise.sets.length} sets
+              associated with this exercise.
+            </p>
+            <p className="text-sm text-red-500 mt-2 font-medium">
+              This action cannot be undone.
+            </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteExerciseDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteExerciseDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteExercise} 
+            <Button
+              variant="destructive"
+              onClick={handleDeleteExercise}
               disabled={loading}
               className="gap-1"
             >
-              {loading ? "Deleting..." : (
+              {loading ? (
+                "Deleting..."
+              ) : (
                 <>
                   <Trash size={16} />
                   Delete Exercise
@@ -340,4 +415,4 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise: initialExercise, 
   );
 };
 
-export default ExerciseCard; 
+export default ExerciseCard;

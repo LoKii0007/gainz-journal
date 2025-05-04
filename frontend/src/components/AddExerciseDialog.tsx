@@ -46,6 +46,7 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
           {
             name: exerciseName,
             workoutId: workout.id,
+            profileId: localStorage.getItem("currentProfileId"),
             sets: []
           },
           {

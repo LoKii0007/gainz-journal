@@ -91,7 +91,7 @@ const AddWorkoutDialog = React.memo(() => {
         const workoutData = {
           title: workoutTitle,
           day: workoutDay,
-          profileId: user?.profiles?.[0]?.id,
+          profileId: localStorage.getItem("currentProfileId"),
           exercises: exerciseList.map((ex) => ({
             name: ex.name,
             sets: [],

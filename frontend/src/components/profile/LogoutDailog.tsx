@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { LogOutIcon } from "lucide-react";
 import { useState } from "react";
 
 const LogoutDialog = () => {
@@ -26,29 +27,30 @@ const LogoutDialog = () => {
   };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">Logout</Button>
-        </DialogTrigger>
-        <DialogContent className="space-y-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-center">
-              Logout
-            </DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="text-center">
-            Are you sure you want to logout?
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="w-full sm:w-auto flex items-center gap-2">
+          <LogOutIcon size={16} />
+          <span>Logout</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Confirm Logout</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to logout? You will need to login again to access your profiles.
           </DialogDescription>
-          <DialogFooter className="grid grid-cols-2 gap-6">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleLogout}>Logout</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        </DialogHeader>
+        <DialogFooter className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleLogout}>
+            Logout
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

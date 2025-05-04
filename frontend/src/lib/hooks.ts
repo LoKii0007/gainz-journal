@@ -13,22 +13,29 @@ export const useInitAuth = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   useEffect(() => {
     const initAuth = async () => {
       try {
         const token = localStorage.getItem("token");
         if (token && !isAuthenticated) {
           try {
-            const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/user`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            dispatch(login({
-              user: res.data.user,
-              token: token,
-            }));
+            const res = await axios.get(
+              `${import.meta.env.VITE_BACKEND_URL}/api/auth/user`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+            
+            dispatch(
+              login({
+                user: res.data.user,
+                token: token,
+                currentProfileId: res.data.currentProfileId,
+              })
+            );
           } catch (error) {
             console.error("Error fetching user data:", error);
           }
@@ -39,32 +46,34 @@ export const useInitAuth = () => {
         setIsInitialized(true);
       }
     };
-    
+
     initAuth();
   }, [dispatch, isAuthenticated]);
-  
+
   return { isInitialized };
 };
 
 // Custom hook to detect screen size for responsive design
 export const useBreakpoint = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1024
+  );
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-  
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
       setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
       setIsDesktop(window.innerWidth >= 1024);
     };
-    
+
     window.addEventListener("resize", handleResize);
-    
+
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-  
+
   return { isMobile, isTablet, isDesktop };
-}; 
+};

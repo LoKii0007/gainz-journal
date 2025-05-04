@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { setWorkouts } from "../redux/slices/workoutSlice";
+import { setWorkouts, deleteExerciseFromWorkout } from "../redux/slices/workoutSlice";
 import { Workout, Exercise } from "../types/workout";
 import axios from "axios";
 import { format } from "date-fns";
@@ -42,10 +42,12 @@ const Dashboard = () => {
 
     try {
       setLoading(true);
+      const activeProfileId = localStorage.getItem("currentProfileId");
+      if (!activeProfileId) {
+        return;
+      }
       const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/profile/${
-          user.profiles[0].id
-        }`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/profile/${activeProfileId}`,
         { headers: { Authorization: `Bearer ${auth.token}` } }
       );
 
@@ -78,6 +80,24 @@ const Dashboard = () => {
         w.id === todayWorkout.id ? updatedWorkout : w
       );
       dispatch(setWorkouts(updatedWorkouts));
+    }
+  };
+
+  const handleExerciseDeleted = (exerciseId: string) => {
+    if (todayWorkout) {
+      // Update the exercises list
+      const updatedExercises = todayExercises.filter(e => e.id !== exerciseId);
+      setTodayExercises(updatedExercises);
+
+      // Update the workout object without the deleted exercise
+      const updatedWorkout = {
+        ...todayWorkout,
+        exercises: todayWorkout.exercises.filter(e => e.id !== exerciseId)
+      };
+      setTodayWorkout(updatedWorkout);
+
+      // Update the redux store
+      dispatch(deleteExerciseFromWorkout({ workoutId: todayWorkout.id, exerciseId }));
     }
   };
 
@@ -120,7 +140,11 @@ const Dashboard = () => {
               {todayExercises.length > 0 ? (
                 <div className="space-y-3">
                   {todayExercises.map((exercise) => (
-                    <ExerciseCard key={exercise.id} exercise={exercise} />
+                    <ExerciseCard 
+                      key={exercise.id} 
+                      exercise={exercise} 
+                      onExerciseDeleted={handleExerciseDeleted}
+                    />
                   ))}
 
                   <AddExerciseDialog

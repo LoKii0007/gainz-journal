@@ -27,10 +27,12 @@ const Workouts = () => {
 
     try {
       setLoading(true);
+      const activeProfileId = localStorage.getItem("currentProfileId");
+      if (!activeProfileId) {
+        return;
+      }
       const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/profile/${
-          user.profiles[0]?.id
-        }`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/profile/${activeProfileId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       dispatch(setWorkouts(res.data.workouts));

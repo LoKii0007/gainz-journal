@@ -10,6 +10,8 @@ import { Plus } from "lucide-react";
 import { Workout, Exercise } from "@/types/workout";
 import AddExerciseDialog from "./AddExerciseDialog";
 import ExerciseCard from "./ExerciseCard";
+import { useAppDispatch } from "@/lib/hooks";
+import { deleteExerciseFromWorkout } from "@/redux/slices/workoutSlice";
 
 interface WorkoutsListProps {
   workouts: Workout[];
@@ -17,6 +19,8 @@ interface WorkoutsListProps {
 }
 
 const WorkoutsList: React.FC<WorkoutsListProps> = ({ workouts, onWorkoutUpdate }) => {
+  const dispatch = useAppDispatch();
+
   const handleExerciseAdded = (workoutId: string, newExercise: Exercise) => {
     if (onWorkoutUpdate) {
       const workout = workouts.find(w => w.id === workoutId);
@@ -31,6 +35,8 @@ const WorkoutsList: React.FC<WorkoutsListProps> = ({ workouts, onWorkoutUpdate }
   };
   
   const handleExerciseDeleted = (workoutId: string, exerciseId: string) => {
+    dispatch(deleteExerciseFromWorkout({ workoutId, exerciseId }));
+    
     if (onWorkoutUpdate) {
       const workout = workouts.find(w => w.id === workoutId);
       if (workout) {

@@ -34,6 +34,19 @@ const workoutSlice = createSlice({
         state[workoutIndex].exercises.push(exercise);
       }
     },
+    deleteExerciseFromWorkout: (
+      state,
+      action: PayloadAction<{ workoutId: string; exerciseId: string }>
+    ) => {
+      const { workoutId, exerciseId } = action.payload;
+      const workoutIndex = state.findIndex((w) => w.id === workoutId);
+
+      if (workoutIndex !== -1 && state[workoutIndex].exercises) {
+        state[workoutIndex].exercises = state[workoutIndex].exercises.filter(
+          (e) => e.id !== exerciseId
+        );
+      }
+    },
   },
 });
 
@@ -43,6 +56,7 @@ export const {
   updateWorkout,
   deleteWorkout,
   addExerciseToWorkout,
+  deleteExerciseFromWorkout,
 } = workoutSlice.actions;
 
 export default workoutSlice.reducer;

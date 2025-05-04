@@ -65,7 +65,7 @@ const getProfileById = async (req, res) => {
 // @access  Private
 const createProfile = async (req, res) => {
   try {
-    const { name, age, gender, fitnessLevel, imageUrl } = req.body;
+    const { name } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: 'Please provide a name for the profile' });
@@ -74,10 +74,6 @@ const createProfile = async (req, res) => {
     const profile = await prisma.profile.create({
       data: {
         name,
-        age: age ? parseInt(age) : null,
-        gender,
-        fitnessLevel,
-        imageUrl,
         userId: req.user.id
       }
     });

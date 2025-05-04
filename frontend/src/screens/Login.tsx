@@ -7,6 +7,7 @@ import { z } from "zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import LoginWithGoogle from "@/components/auth/LoginWithGoogle";
+import { setProfiles } from "@/redux/slices/profileSlice";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -74,8 +75,10 @@ const Login = () => {
         login({
           user: res.data.user,
           token: res.data.token,
+          currentProfileId: res.data.currentProfileId,
         })
       );
+      dispatch(setProfiles(res.data.profiles));
 
       navigate("/");
     } catch (err: any) {
