@@ -5,4 +5,5 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   email: string | null;
+  currentProfileId: string | null;
 }

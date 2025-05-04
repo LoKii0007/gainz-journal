@@ -25,7 +25,7 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   
-  const { token } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth);
   
   // Handle form submission
   const handleSubmit = useCallback(
@@ -46,11 +46,11 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
           {
             name: exerciseName,
             workoutId: workout.id,
-            profileId: localStorage.getItem("currentProfileId"),
+            profileId: user.currentProfileId,
             sets: []
           },
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${user.token}` },
           }
         );
         
@@ -73,7 +73,7 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
         setLoading(false);
       }
     },
-    [exerciseName, workout.id, token, onExerciseAdded]
+    [exerciseName, workout.id, user.token, onExerciseAdded]
   );
   
   const defaultTrigger = (

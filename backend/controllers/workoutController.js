@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
@@ -7,41 +7,41 @@ const getWorkouts = async (req, res) => {
     const { profileId } = req.query;
 
     if (!profileId) {
-      return res.status(400).json({ message: 'Profile ID is required' });
+      return res.status(400).json({ message: "Profile ID is required" });
     }
 
     // Verify profile ownership
     const profile = await prisma.profile.findUnique({
       where: {
-        id: profileId
-      }
+        id: profileId,
+      },
     });
 
     if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
+      return res.status(404).json({ message: "Profile not found" });
     }
 
     if (profile.userId !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     const workouts = await prisma.workout.findMany({
       where: {
-        profileId
+        profileId,
       },
       include: {
         exercises: {
           include: {
-            sets: true
-          }
-        }
-      }
+            sets: true,
+          },
+        },
+      },
     });
 
     res.json({ workouts });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -52,31 +52,31 @@ const getWorkoutById = async (req, res) => {
   try {
     const workout = await prisma.workout.findUnique({
       where: {
-        id: req.params.id
+        id: req.params.id,
       },
       include: {
         exercises: {
           include: {
-            sets: true
-          }
+            sets: true,
+          },
         },
-        profile: true
-      }
+        profile: true,
+      },
     });
 
     if (!workout) {
-      return res.status(404).json({ message: 'Workout not found' });
+      return res.status(404).json({ message: "Workout not found" });
     }
 
     // Check if profile belongs to user
     if (workout.profile.userId !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     res.json({ workout });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -88,47 +88,38 @@ const createWorkout = async (req, res) => {
     let { title, day, profileId, exercises = [] } = req.body;
 
     if (!title || !day) {
-      return res.status(400).json({ message: 'Please provide all required fields' });
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields" });
     }
 
     let profile;
 
     // If profileId is provided, verify it
-    if (profileId) {
+    if (profileId && profileId !== "undefined" && profileId !== null) {
       profile = await prisma.profile.findUnique({
         where: {
-          id: profileId
-        }
+          id: profileId,
+        },
       });
 
       if (!profile) {
-        return res.status(404).json({ message: 'Profile not found' });
+        return res.status(404).json({ message: "Profile not found" });
       }
 
       if (profile.userId !== req.user.id) {
-        return res.status(401).json({ message: 'Not authorized' });
+        return res.status(401).json({ message: "Not authorized" });
       }
     } else {
       // Check if user has any profiles
       const userProfiles = await prisma.profile.findMany({
         where: {
-          userId: req.user.id
-        }
+          userId: req.user.id,
+          active: true,
+        },
       });
 
-      if (userProfiles.length > 0) {
-        return res.status(400).json({ message: 'Please select a profile' });
-      } else {
-        // Create a new profile for the user
-        profile = await prisma.profile.create({
-          data: {
-            name: `Profile ${userProfiles.length + 1}`, // Default name from email
-            userId: req.user.id,
-            active: true
-          }
-        });
-        profileId = profile.id;
-      }
+      profileId = userProfiles[0].id;
     }
 
     // Create workout with exercises and sets in a single transaction
@@ -138,27 +129,26 @@ const createWorkout = async (req, res) => {
         day,
         profileId,
         exercises: {
-          create: exercises.map(exercise => ({
+          create: exercises.map((exercise) => ({
             name: exercise.name,
-          }))
-        }
+          })),
+        },
       },
       include: {
         exercises: {
           include: {
-            sets: true
-          }
-        }
-      }
+            sets: true,
+          },
+        },
+      },
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       workout,
-      profile: profile // Include profile in response to update frontend
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -172,43 +162,43 @@ const updateWorkout = async (req, res) => {
     // Find workout to check ownership
     const existingWorkout = await prisma.workout.findUnique({
       where: {
-        id: req.params.id
+        id: req.params.id,
       },
       include: {
-        profile: true
-      }
+        profile: true,
+      },
     });
 
     if (!existingWorkout) {
-      return res.status(404).json({ message: 'Workout not found' });
+      return res.status(404).json({ message: "Workout not found" });
     }
 
     // Check if profile belongs to user
     if (existingWorkout.profile.userId !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     const workout = await prisma.workout.update({
       where: {
-        id: req.params.id
+        id: req.params.id,
       },
       data: {
         title: title || existingWorkout.title,
-        day: day || existingWorkout.day
+        day: day || existingWorkout.day,
       },
       include: {
         exercises: {
           include: {
-            sets: true
-          }
-        }
-      }
+            sets: true,
+          },
+        },
+      },
     });
 
     res.json({ workout });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -220,32 +210,32 @@ const deleteWorkout = async (req, res) => {
     // Find workout to check ownership
     const existingWorkout = await prisma.workout.findUnique({
       where: {
-        id: req.params.id
+        id: req.params.id,
       },
       include: {
-        profile: true
-      }
+        profile: true,
+      },
     });
 
     if (!existingWorkout) {
-      return res.status(404).json({ message: 'Workout not found' });
+      return res.status(404).json({ message: "Workout not found" });
     }
 
     // Check if profile belongs to user
     if (existingWorkout.profile.userId !== req.user.id) {
-      return res.status(401).json({ message: 'Not authorized' });
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     await prisma.workout.delete({
       where: {
-        id: req.params.id
-      }
+        id: req.params.id,
+      },
     });
 
-    res.json({ message: 'Workout removed' });
+    res.json({ message: "Workout removed" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -254,5 +244,5 @@ module.exports = {
   getWorkoutById,
   createWorkout,
   updateWorkout,
-  deleteWorkout
-}; 
+  deleteWorkout,
+};

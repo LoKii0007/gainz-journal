@@ -38,6 +38,7 @@ const registerUser = async (req, res) => {
         profiles: {
           create: {
             name,
+            active: true,
           },
         },
       },
@@ -54,6 +55,7 @@ const registerUser = async (req, res) => {
           profiles: user.profiles,
         },
         token: generateToken(user.id),
+        currentProfileId: user.profiles[0].id,
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });

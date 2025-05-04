@@ -1,0 +1,22 @@
+
+.link-item{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.link-item::after{
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 0%;
+    height: 2px;
+    background-color: #000;
+    transition: width 0.3s ease;
+}
+
+.link-item:hover::after{
+    width: 100%;
+}

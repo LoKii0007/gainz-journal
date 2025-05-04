@@ -7,6 +7,7 @@ const initialState: AuthState = {
   token: localStorage.getItem("token"),
   isAuthenticated: false,
   email: null,
+  currentProfileId: null,
 };
 
 const authSlice = createSlice({
@@ -18,17 +19,19 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.email = action.payload.user.email;
-      console.log(action.payload.currentProfileId);
+      state.currentProfileId = action.payload.currentProfileId;
       localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("currentProfileId", action.payload.currentProfileId);
+    },
+    updateProfileId: (state, action: PayloadAction<string>) => {
+      state.currentProfileId = action.payload;
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.email = null;
+      state.currentProfileId = null;
       localStorage.removeItem("token");
-      localStorage.removeItem("currentProfileId");
     },
   },
 });
@@ -36,6 +39,7 @@ const authSlice = createSlice({
 export const {
   login,
   logout,
+  updateProfileId,
 } = authSlice.actions;
 
 export default authSlice.reducer; 

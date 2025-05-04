@@ -18,6 +18,8 @@ import toast from "react-hot-toast";
 import { Days } from "@/types/workout";
 import { addWorkout } from "@/redux/slices/workoutSlice";
 import { addProfile } from "@/redux/slices/profileSlice";
+import { updateProfileId } from "@/redux/slices/authSlice";
+
 interface ExerciseItem {
   name: string;
   id?: string;
@@ -34,7 +36,7 @@ const AddWorkoutDialog = React.memo(() => {
   const [formState, setFormState] = useState(initialState);
   const [isOpen, setIsOpen] = useState(false);
 
-  const { user, token } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   // Update form state
@@ -91,7 +93,7 @@ const AddWorkoutDialog = React.memo(() => {
         const workoutData = {
           title: workoutTitle,
           day: workoutDay,
-          profileId: localStorage.getItem("currentProfileId"),
+          profileId: user.currentProfileId,
           exercises: exerciseList.map((ex) => ({
             name: ex.name,
             sets: [],
@@ -102,17 +104,9 @@ const AddWorkoutDialog = React.memo(() => {
           `${import.meta.env.VITE_BACKEND_URL}/api/workout`,
           workoutData,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${user.token}` },
           }
         );
-
-        console.log("response", response.data);
-        if (
-          response.data.profile &&
-          (!user?.profiles || user.profiles.length === 0)
-        ) {
-          dispatch(addProfile(response.data.profile));
-        } 
 
         toast.success("Workout created successfully!");
         dispatch(addWorkout(response.data.workout));
@@ -130,7 +124,7 @@ const AddWorkoutDialog = React.memo(() => {
         setLoading(false);
       }
     },
-    [formState, user, token, initialState, dispatch]
+    [formState, user, initialState, dispatch]
   );
 
   return (

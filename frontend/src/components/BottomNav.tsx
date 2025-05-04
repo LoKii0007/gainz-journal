@@ -22,7 +22,7 @@ const navItems = [
 
 const BottomNav = () => {
   return (
-    <div className="sticky bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border">
+    <div className="sticky md:hidden bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border">
       <div className="grid h-full grid-cols-3">
         {navItems.map((item) => (
           <NavLink

@@ -92,6 +92,7 @@ const Register = () => {
         login({
           user: res.data.user,
           token: res.data.token,
+          currentProfileId: res.data.currentProfileId,
         })
       );
 

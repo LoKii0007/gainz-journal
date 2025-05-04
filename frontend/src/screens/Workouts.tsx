@@ -11,8 +11,7 @@ import { Workout } from "@/types/workout";
 
 const Workouts = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
-  const { token } = useAppSelector((state) => state.auth);
+  const user  = useAppSelector((state) => state.auth);
   const workouts = useAppSelector((state) => state.workout);
   const [loading, setLoading] = useState(true);
 
@@ -27,13 +26,13 @@ const Workouts = () => {
 
     try {
       setLoading(true);
-      const activeProfileId = localStorage.getItem("currentProfileId");
+      const activeProfileId = user.currentProfileId;
       if (!activeProfileId) {
         return;
       }
       const res = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/profile/${activeProfileId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
       dispatch(setWorkouts(res.data.workouts));
     } catch (err: any) {

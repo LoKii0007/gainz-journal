@@ -20,7 +20,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
   const [isOpen, setIsOpen] = useState(false);
   const [setInputs, setSetInputs] = useState<Array<{ reps: number, weight: number }>>([{ reps: 0, weight: 0 }]);
   
-  const { token } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth);
   
   // Add another set input field
   const addSetInput = useCallback(() => {
@@ -67,10 +67,10 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
               reps: set.reps,
               weight: set.weight,
               exerciseId: exercise.id,
-              profileId: localStorage.getItem("currentProfileId"),
+              profileId: user.currentProfileId,
             },
             {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${user.token}` },
             }
           );
           
@@ -96,7 +96,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
         setLoading(false);
       }
     },
-    [setInputs, exercise.id, token, onSetsAdded]
+    [setInputs, exercise.id, user.token, onSetsAdded]
   );
   
   return (

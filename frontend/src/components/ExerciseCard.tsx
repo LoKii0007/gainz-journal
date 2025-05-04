@@ -46,7 +46,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   const [newWeight, setNewWeight] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const { token } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth);
 
   const dayStart = useMemo(() => {
     const today = new Date();
@@ -89,7 +89,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
           reps: newReps,
           weight: newWeight,
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       // Update local state with updated set
@@ -118,7 +118,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/set/${deletingSet.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       // Remove the deleted set from local state
@@ -143,7 +143,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
 
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/exercise/${exercise.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       toast.success("Exercise deleted successfully");

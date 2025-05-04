@@ -15,12 +15,11 @@ import DeleteDialog from "@/components/DeleteDialog";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const workouts = useAppSelector((state) => state.workout);
   const [todayWorkout, setTodayWorkout] = useState<Workout | null>(null);
   const [todayExercises, setTodayExercises] = useState<Exercise[]>([]);
-  const auth = useSelector((state: any) => state.auth);
+  const user = useSelector((state: any) => state.auth);
 
   useEffect(() => {
     if (user) {
@@ -42,13 +41,13 @@ const Dashboard = () => {
 
     try {
       setLoading(true);
-      const activeProfileId = localStorage.getItem("currentProfileId");
-      if (!activeProfileId) {
+      const activeProfileId = user.currentProfileId;
+      if (!activeProfileId || activeProfileId === 'undefined' || activeProfileId === null) {
         return;
       }
       const res = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/profile/${activeProfileId}`,
-        { headers: { Authorization: `Bearer ${auth.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       dispatch(setWorkouts(res.data.workouts));
