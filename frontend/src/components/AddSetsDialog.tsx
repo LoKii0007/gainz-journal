@@ -117,7 +117,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
               {setInputs.map((setInput, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <div className="flex-1 grid grid-cols-2 gap-2">
-                    <div>
+                    <div className="grid gap-1">
                       <Label htmlFor={`reps-${index}`} className="text-xs">
                         Reps {index + 1}
                       </Label>
@@ -132,7 +132,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({ exercise, onSetsAdded }) 
                         }
                       />
                     </div>
-                    <div>
+                    <div className="grid gap-1">
                       <Label htmlFor={`weight-${index}`} className="text-xs">
                         Weight {index + 1} (kg)
                       </Label>

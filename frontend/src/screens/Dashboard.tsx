@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../lib/hooks";
-import { setWorkouts, deleteExerciseFromWorkout } from "../redux/slices/workoutSlice";
+import {
+  setWorkouts,
+  deleteExerciseFromWorkout,
+} from "../redux/slices/workoutSlice";
 import { Workout, Exercise } from "../types/workout";
 import axios from "axios";
 import { format } from "date-fns";
@@ -12,6 +15,8 @@ import AddWorkoutDialog from "../components/AddWorkoutDialog";
 import ExerciseCard from "../components/ExerciseCard";
 import AddExerciseDialog from "../components/AddExerciseDialog";
 import DeleteDialog from "@/components/DeleteDialog";
+import Workouts from "./Workouts";
+import WorkoutsList from "@/components/WorkoutsList";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -42,7 +47,11 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const activeProfileId = user.currentProfileId;
-      if (!activeProfileId || activeProfileId === 'undefined' || activeProfileId === null) {
+      if (
+        !activeProfileId ||
+        activeProfileId === "undefined" ||
+        activeProfileId === null
+      ) {
         return;
       }
       const res = await axios.get(
@@ -85,24 +94,35 @@ const Dashboard = () => {
   const handleExerciseDeleted = (exerciseId: string) => {
     if (todayWorkout) {
       // Update the exercises list
-      const updatedExercises = todayExercises.filter(e => e.id !== exerciseId);
+      const updatedExercises = todayExercises.filter(
+        (e) => e.id !== exerciseId
+      );
       setTodayExercises(updatedExercises);
 
       // Update the workout object without the deleted exercise
       const updatedWorkout = {
         ...todayWorkout,
-        exercises: todayWorkout.exercises.filter(e => e.id !== exerciseId)
+        exercises: todayWorkout.exercises.filter((e) => e.id !== exerciseId),
       };
       setTodayWorkout(updatedWorkout);
 
       // Update the redux store
-      dispatch(deleteExerciseFromWorkout({ workoutId: todayWorkout.id, exerciseId }));
+      dispatch(
+        deleteExerciseFromWorkout({ workoutId: todayWorkout.id, exerciseId })
+      );
     }
   };
 
   useEffect(() => {
     handleTodaysWorkout(workouts);
   }, [workouts]);
+
+  const handleWorkoutUpdate = (updatedWorkout: Workout) => {
+    const updatedWorkouts = workouts.map((w) =>
+      w.id === updatedWorkout.id ? updatedWorkout : w
+    );
+    dispatch(setWorkouts(updatedWorkouts));
+  };
 
   return (
     <div className="space-y-6 max-w-screen-lg mx-auto p-2 md:p-4">
@@ -139,9 +159,9 @@ const Dashboard = () => {
               {todayExercises.length > 0 ? (
                 <div className="space-y-3">
                   {todayExercises.map((exercise) => (
-                    <ExerciseCard 
-                      key={exercise.id} 
-                      exercise={exercise} 
+                    <ExerciseCard
+                      key={exercise.id}
+                      exercise={exercise}
                       onExerciseDeleted={handleExerciseDeleted}
                     />
                   ))}
@@ -183,6 +203,14 @@ const Dashboard = () => {
               <AddWorkoutDialog />
             </div>
           )}
+          {/* other workouts */}
+          <div className="pb-6 px-2 flex flex-col items-center justify-center">
+            <h2 className="w-full font-semibold mb-2 text-left">Other Workouts</h2>
+            <WorkoutsList
+              workouts={workouts}
+              onWorkoutUpdate={handleWorkoutUpdate}
+            />
+          </div>
         </>
       )}
     </div>

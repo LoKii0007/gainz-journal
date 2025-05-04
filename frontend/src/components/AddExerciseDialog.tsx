@@ -93,11 +93,11 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
           <DialogTitle>Add Exercise to {workout.title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-2">
+          <div className="grid md:grid-cols-4 items-center gap-2">
             <Label htmlFor="exerciseName" className="text-right">
               Exercise name
             </Label>
-            <div className="col-span-3">
+            <div className="md:col-span-3">
               <Input
                 id="exerciseName"
                 placeholder="E.g. Bench Press, Squat, etc."
