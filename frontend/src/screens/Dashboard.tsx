@@ -15,7 +15,6 @@ import AddWorkoutDialog from "../components/AddWorkoutDialog";
 import ExerciseCard from "../components/ExerciseCard";
 import AddExerciseDialog from "../components/AddExerciseDialog";
 import DeleteDialog from "@/components/DeleteDialog";
-import Workouts from "./Workouts";
 import WorkoutsList from "@/components/WorkoutsList";
 
 const Dashboard = () => {
