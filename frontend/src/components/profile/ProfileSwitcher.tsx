@@ -1,26 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { updateProfile } from "@/redux/slices/profileSlice";
+import { updateProfileId } from "@/redux/slices/authSlice";
 import { UserIcon } from "lucide-react";
 
 const ProfileSwitcher = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(
-    localStorage.getItem("currentProfileId")
-  );
-
   const dispatch = useAppDispatch();
-  const { token } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state) => state.auth);
   const profiles = useAppSelector((state) => state.profile);
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(
+    user?.currentProfileId
+  );
 
   // Find current active profile
   const currentProfile =
     profiles.find((p) => p.id === currentProfileId) ||
     profiles.find((p) => p.active) ||
     (profiles.length > 0 ? profiles[0] : null);
+
+  // Update currentProfileId when currentProfile changes
+  useEffect(() => {
+    if (currentProfile && currentProfile.id !== currentProfileId) {
+      setCurrentProfileId(currentProfile.id);
+    }
+  }, [currentProfile, currentProfileId]);
 
   const handleSwitchProfile = async (profileId: string) => {
     if (profileId === currentProfileId) return;
@@ -33,7 +40,7 @@ const ProfileSwitcher = () => {
         await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/api/profile/${currentProfileId}`,
           { active: false },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${user.token}` } }
         );
       }
 
@@ -41,13 +48,13 @@ const ProfileSwitcher = () => {
       const res = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/profile/${profileId}`,
         { active: true },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       // Update local state and storage
       dispatch(updateProfile(res.data.profile));
+      dispatch(updateProfileId(profileId));
       setCurrentProfileId(profileId);
-      localStorage.setItem("currentProfileId", profileId);
 
       // Display success message
       const newProfile = profiles.find((p) => p.id === profileId);
