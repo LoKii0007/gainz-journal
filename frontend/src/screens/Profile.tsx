@@ -25,6 +25,7 @@ const Profile = () => {
     }
 
     const fetchProfiles = async () => {
+      if (profiles.length > 0) return;
       setIsLoading(true);
       try {
         const res = await axios.get(

@@ -57,9 +57,8 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     try {
@@ -192,7 +191,7 @@ const Login = () => {
           </div>
 
           <div className="grid items-center justify-center">
-            <LoginWithGoogle />
+            <LoginWithGoogle loading={loading} setLoading={setLoading} />
           </div>
         </div>
 

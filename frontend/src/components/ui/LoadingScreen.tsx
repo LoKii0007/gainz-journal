@@ -9,12 +9,7 @@ const LoadingScreen = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <motion.div
-          className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        />
-        <p className="text-xl font-medium text-foreground">Loading...</p>
+        <img src="/images/treadmill.gif" alt="loading" className="md:w-16 md:h-16 w-12 h-12" />
       </motion.div>
     </div>
   );

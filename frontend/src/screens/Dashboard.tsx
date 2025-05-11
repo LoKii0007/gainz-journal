@@ -16,6 +16,7 @@ import ExerciseCard from "../components/ExerciseCard";
 import AddExerciseDialog from "../components/AddExerciseDialog";
 import DeleteDialog from "@/components/DeleteDialog";
 import WorkoutsList from "@/components/WorkoutsList";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -42,7 +43,7 @@ const Dashboard = () => {
 
   const fetchWorkouts = async () => {
     if (!user) return;
-
+    if (workouts.length > 0) return;
     try {
       setLoading(true);
       const activeProfileId = user.currentProfileId;
@@ -136,8 +137,10 @@ const Dashboard = () => {
       </header>
 
       {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
       ) : (
         <>
@@ -204,7 +207,9 @@ const Dashboard = () => {
           )}
           {/* other workouts */}
           <div className="pb-6 px-2 flex flex-col items-center justify-center">
-            <h2 className="w-full font-semibold mb-2 text-left">Other Workouts</h2>
+            <h2 className="w-full font-semibold mb-2 text-left">
+              Other Workouts
+            </h2>
             <WorkoutsList
               workouts={workouts}
               onWorkoutUpdate={handleWorkoutUpdate}

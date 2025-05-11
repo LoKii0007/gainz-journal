@@ -234,25 +234,26 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     </div>
                   </div>
                 ))}
-              {setsHistory.map((setOfDay) =>
-                setOfDay.map((set, index) => (
-                  <>
+              {setsHistory.map((setOfDay) => (
+                <>
+                  <div className="text-sm text-muted-foreground py-2 mb-0 text-center flex items-center gap-2">
+                    <HistoryIcon size={16} />
+                    <span>
+                      {format(new Date(setOfDay[0].createdAt), "MMM d, yyyy")}
+                    </span>
+                  </div>
+
+                  {setOfDay.map((set, index) => (
                     <div key={set.id}>
-                      <div className="text-sm text-muted-foreground py-2 mb-0 text-center flex items-center gap-2">
-                        <HistoryIcon size={16} />
-                        <span>
-                          {format(new Date(set.createdAt), "MMM d, yyyy")}
-                        </span>
-                      </div>
                       <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
                         <div className="col-span-1">{index + 1}</div>
                         <div className="col-span-3">{set.reps}</div>
                         <div className="col-span-4">{set.weight} kg</div>
                       </div>
                     </div>
-                  </>
-                ))
-              )}
+                  ))}
+                </>
+              ))}
             </div>
           ) : (
             <div className="text-sm text-muted-foreground py-2 text-center">

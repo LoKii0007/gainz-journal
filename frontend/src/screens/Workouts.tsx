@@ -13,7 +13,7 @@ const Workouts = () => {
   const dispatch = useAppDispatch();
   const user  = useAppSelector((state) => state.auth);
   const workouts = useAppSelector((state) => state.workout);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -23,6 +23,7 @@ const Workouts = () => {
 
   const fetchWorkouts = async () => {
     if (!user) return;
+    if (workouts.length > 0) return;
 
     try {
       setLoading(true);

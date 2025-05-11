@@ -1,33 +1,55 @@
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
+import { login } from "@/redux/slices/authSlice";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-function SignupWithGoogle() {
+function SignupWithGoogle({
+  loading,
+  setLoading,
+}: {
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+}) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const loginCredentials = async (res: any) => {
-    const decoded: any = jwtDecode(res.credential);
-    if (!decoded) {
-      toast.error("Google login failed. Please try again.");
-    }
-
-    const userData = {
-      email: decoded.email,
-      googleId: decoded.sub,
-    };
-
     try {
+      const decoded: any = jwtDecode(res.credential);
+      if (!decoded) {
+        toast.error("Google login failed. Please try again.");
+      }
+
+      const registerData = {
+        email: decoded.email,
+        password: decoded.sub,
+        name: decoded.name,
+      };
+
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/login`,
-        { email: userData.email, googleId: userData.googleId }
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/register`,
+        registerData
       );
-      toast.success("User logged in Successfully");
-      localStorage.setItem("proppedUpToken", response.data.token);
+
+      dispatch(
+        login({
+          user: response.data.user,
+          token: response.data.token,
+          currentProfileId: response.data.currentProfileId,
+        })
+      );
+
       navigate("/");
-    } catch (error) {
-      toast.error("Google login failed. Please try again.");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message ||
+          "Google login failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,9 +59,9 @@ function SignupWithGoogle() {
 
   return (
     <>
-      <div className="google flex justify-center w-fit ">
+      <button disabled={loading} className="google flex justify-center w-fit ">
         <GoogleLogin onSuccess={loginCredentials} onError={loginError} />
-      </div>
+      </button>
     </>
   );
 }

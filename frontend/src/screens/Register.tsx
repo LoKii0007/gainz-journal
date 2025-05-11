@@ -105,6 +105,7 @@ const Register = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-center p-4 w-screen">
@@ -267,7 +268,7 @@ const Register = () => {
           </div>
 
           <div className="grid items-center justify-center">
-            <SignupWithGoogle />
+            <SignupWithGoogle loading={loading} setLoading={setLoading} />
           </div>
         </div>
 
