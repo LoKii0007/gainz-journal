@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const prisma = require("../utils/prisma");
 
 const getWorkouts = async (req, res) => {
   try {
@@ -10,32 +8,24 @@ const getWorkouts = async (req, res) => {
       return res.status(400).json({ message: "Profile ID is required" });
     }
 
-    // Verify profile ownership
-    const profile = await prisma.profile.findUnique({
-      where: {
-        id: profileId,
-      },
-    });
-
-    if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
-    }
-
-    if (profile.userId !== req.user.id) {
-      return res.status(401).json({ message: "Not authorized" });
-    }
-
     const workouts = await prisma.workout.findMany({
       where: {
         profileId,
+        profile: {
+          userId: req.user.id,
+        },
       },
       include: {
         exercises: {
           include: {
-            sets: true,
+            sets: {
+              orderBy: { createdAt: "asc" },
+            },
           },
+          orderBy: { createdAt: "asc" },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({ workouts });

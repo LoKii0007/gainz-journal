@@ -27,12 +27,25 @@ export const Days = [
   "SATURDAY",
 ];
 
+export enum WeightUnit {
+  KG = "KG",
+  LBS = "LBS"
+}
+
+export enum WeightType {
+  TOTAL = "TOTAL",
+  PER_SIDE = "PER_SIDE"
+}
+
 export interface Set {
   id: string;
   reps: number;
   weight: number;
+  unit: WeightUnit;
+  weightType: WeightType;
   exerciseId: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Exercise {

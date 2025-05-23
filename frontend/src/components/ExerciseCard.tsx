@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Exercise, Set } from "@/types/workout";
+import { Exercise, Set, WeightType, WeightUnit } from "@/types/workout";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import AddSetsDialog from "./AddSetsDialog";
 import {
@@ -25,6 +25,14 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { groupBy } from "lodash";
 import { format } from "date-fns";
+import { weightMeasurements, weightUnits } from "@/lib/constants";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -88,6 +96,8 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
         {
           reps: newReps,
           weight: newWeight,
+          unit: editingSet.unit,
+          weightType: editingSet.weightType,
         },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -175,6 +185,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
     return Object.values(groupedByDay);
   }, [exercise.sets, dayStart]);
 
+  const formatWeight = (set: Set) => {
+    const weightType = set.weightType === WeightType.PER_SIDE ? 'per side' : 'total';
+    return `${set.weight} ${set.unit.toLowerCase()} ${weightType}`;
+  };
+
   return (
     <>
       <Card className="w-full">
@@ -213,7 +228,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                   >
                     <div className="col-span-1">{index + 1}</div>
                     <div className="col-span-3">{set.reps}</div>
-                    <div className="col-span-4">{set.weight} kg</div>
+                    <div className="col-span-4">{formatWeight(set)}</div>
                     <div className="col-span-4 flex items-center space-x-1">
                       <Button
                         variant="ghost"
@@ -248,7 +263,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                       <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
                         <div className="col-span-1">{index + 1}</div>
                         <div className="col-span-3">{set.reps}</div>
-                        <div className="col-span-4">{set.weight} kg</div>
+                        <div className="col-span-4">{formatWeight(set)}</div>
                       </div>
                     </div>
                   ))}
@@ -282,7 +297,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="edit-weight">Weight (kg)</Label>
+                <Label htmlFor="edit-weight">Weight</Label>
                 <Input
                   id="edit-weight"
                   type="number"
@@ -293,6 +308,50 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                     setNewWeight(parseFloat(e.target.value) || 0)
                   }
                 />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Weight Type</Label>
+                <Select
+                  value={editingSet?.weightType}
+                  onValueChange={(value) => setEditingSet(prev => prev ? {...prev, weightType: value as WeightType} : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Weight type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {weightMeasurements.map((measurement) => (
+                      <SelectItem
+                        key={measurement.value}
+                        value={measurement.value}
+                      >
+                        {measurement.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Unit</Label>
+                <Select
+                  value={editingSet?.unit}
+                  onValueChange={(value) => setEditingSet(prev => prev ? {...prev, unit: value as WeightUnit} : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {weightUnits.map((unit) => (
+                      <SelectItem
+                        key={unit.value}
+                        value={unit.value}
+                      >
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

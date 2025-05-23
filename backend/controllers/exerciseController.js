@@ -1,51 +1,26 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../utils/prisma");
 
-const prisma = new PrismaClient();
-
-// Helper function to check workout ownership
-const checkWorkoutOwnership = async (workoutId, userId) => {
-  const workout = await prisma.workout.findUnique({
-    where: {
-      id: workoutId
-    },
-    include: {
-      profile: true
-    }
-  });
-
-  if (!workout) {
-    return { error: 'Workout not found', status: 404 };
-  }
-
-  if (workout.profile.userId !== userId) {
-    return { error: 'Not authorized', status: 401 };
-  }
-
-  return { workout };
-};
 
 // @desc    Get all exercises for a workout
 // @route   GET /api/exercise?workoutId=:workoutId
 // @access  Private
 const getExercises = async (req, res) => {
   try {
-    const { workoutId } = req.query;
-
-    if (!workoutId) {
-      return res.status(400).json({ message: 'Workout ID is required' });
-    }
-
-    const ownershipCheck = await checkWorkoutOwnership(workoutId, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
-    }
-
     const exercises = await prisma.exercise.findMany({
       where: {
-        workoutId
+        id: req.params.id,
+        workout:{
+          profile:{
+            userId: req.user.id
+          }
+        }
       },
       include: {
-        sets: true
+        sets: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }
       }
     });
 
@@ -102,20 +77,17 @@ const createExercise = async (req, res) => {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    const ownershipCheck = await checkWorkoutOwnership(workoutId, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
-    }
-
     const exercise = await prisma.exercise.create({
       data: {
         name,
         workoutId,
         sets: {
-          create: sets.map(set => ({
-            reps: set.reps,
-            weight: set.weight
-          }))
+          createMany: {
+            data: sets.map(set => ({
+              reps: set.reps,
+              weight: set.weight
+            }))
+          }
         }
       },
       include: {

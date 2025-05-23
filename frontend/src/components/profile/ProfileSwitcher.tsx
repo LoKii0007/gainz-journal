@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { updateProfile } from "@/redux/slices/profileSlice";
 import { updateProfileId } from "@/redux/slices/authSlice";
 import { UserIcon } from "lucide-react";
+import { setWorkouts } from "@/redux/slices/workoutSlice";
+
 
 const ProfileSwitcher = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,7 @@ const ProfileSwitcher = () => {
       // Update local state and storage
       dispatch(updateProfile(res.data.profile));
       dispatch(updateProfileId(profileId));
+      dispatch(setWorkouts(res.data.profile.workouts));
       setCurrentProfileId(profileId);
 
       // Display success message

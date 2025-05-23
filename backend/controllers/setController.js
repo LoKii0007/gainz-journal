@@ -1,121 +1,70 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../utils/prisma");
+const { validateSet } = require("../validators/setValidator");
 
-const prisma = new PrismaClient();
-
-// Helper function to check exercise ownership
-const checkExerciseOwnership = async (exerciseId, userId) => {
-  const exercise = await prisma.exercise.findUnique({
-    where: {
-      id: exerciseId
-    },
-    include: {
-      workout: {
-        include: {
-          profile: true
-        }
-      }
-    }
-  });
-
-  if (!exercise) {
-    return { error: 'Exercise not found', status: 404 };
-  }
-
-  if (exercise.workout.profile.userId !== userId) {
-    return { error: 'Not authorized', status: 401 };
-  }
-
-  return { exercise };
-};
-
-// Helper function to check set ownership
-const checkSetOwnership = async (setId, userId) => {
-  const set = await prisma.set.findUnique({
-    where: {
-      id: setId
-    },
-    include: {
-      exercise: {
-        include: {
-          workout: {
-            include: {
-              profile: true
-            }
-          }
-        }
-      }
-    }
-  });
-
-  if (!set) {
-    return { error: 'Set not found', status: 404 };
-  }
-
-  if (set.exercise.workout.profile.userId !== userId) {
-    return { error: 'Not authorized', status: 401 };
-  }
-
-  return { set };
-};
-
-
+// @desc    Get all sets for an exercise
+// @route   GET /api/set
+// @access  Private
 const getSets = async (req, res) => {
   try {
     const { exerciseId } = req.query;
 
     if (!exerciseId) {
-      return res.status(400).json({ message: 'Exercise ID is required' });
-    }
-
-    const ownershipCheck = await checkExerciseOwnership(exerciseId, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
+      return res.status(400).json({ error: "Exercise ID is required" });
     }
 
     const sets = await prisma.set.findMany({
       where: {
-        exerciseId
+        exerciseId,
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: "desc",
+      },
     });
 
-    res.json({ sets });
+    res.json(sets);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error("Error getting sets:", error);
+    res.status(500).json({ error: "Failed to get sets" });
   }
 };
 
-// @desc    Create a set
+// @desc    Create a new set
 // @route   POST /api/set
 // @access  Private
 const createSet = async (req, res) => {
   try {
-    const { reps, weight, exerciseId } = req.body;
+    const { reps, weight, exerciseId, unit, weightType } = req.body;
 
-    if (!reps || !weight || !exerciseId) {
-      return res.status(400).json({ message: 'Please provide all required fields' });
+    // Validate input
+    const validationError = validateSet(req.body);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
     }
 
-    const ownershipCheck = await checkExerciseOwnership(exerciseId, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
+    // Check if exercise exists
+    const exercise = await prisma.exercise.findUnique({
+      where: { id: exerciseId },
+    });
+
+    if (!exercise) {
+      return res.status(404).json({ error: "Exercise not found" });
     }
 
+    // Create set
     const set = await prisma.set.create({
       data: {
-        reps: parseInt(reps),
-        weight: parseFloat(weight),
-        exerciseId
-      }
+        reps,
+        weight,
+        unit,
+        weightType,
+        exerciseId,
+      },
     });
 
     res.status(201).json({ set });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error("Error creating set:", error);
+    res.status(500).json({ error: "Failed to create set" });
   }
 };
 
@@ -124,29 +73,40 @@ const createSet = async (req, res) => {
 // @access  Private
 const updateSet = async (req, res) => {
   try {
-    const { reps, weight } = req.body;
+    const { id } = req.params;
+    const { reps, weight, unit, weightType } = req.body;
 
-    const ownershipCheck = await checkSetOwnership(req.params.id, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
+    // Validate input
+    const validationError = validateSet(req.body);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
     }
 
-    const { set: existingSet } = ownershipCheck;
+    // Check if set exists
+    const existingSet = await prisma.set.findUnique({
+      where: { id },
+      include: { exercise: true },
+    });
 
+    if (!existingSet) {
+      return res.status(404).json({ error: "Set not found" });
+    }
+
+    // Update set
     const set = await prisma.set.update({
-      where: {
-        id: req.params.id
-      },
+      where: { id },
       data: {
-        reps: reps !== undefined ? parseInt(reps) : existingSet.reps,
-        weight: weight !== undefined ? parseFloat(weight) : existingSet.weight
-      }
+        reps,
+        weight,
+        unit,
+        weightType,
+      },
     });
 
     res.json({ set });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error("Error updating set:", error);
+    res.status(500).json({ error: "Failed to update set" });
   }
 };
 
@@ -155,21 +115,27 @@ const updateSet = async (req, res) => {
 // @access  Private
 const deleteSet = async (req, res) => {
   try {
-    const ownershipCheck = await checkSetOwnership(req.params.id, req.user.id);
-    if (ownershipCheck.error) {
-      return res.status(ownershipCheck.status).json({ message: ownershipCheck.error });
-    }
+    const { id } = req.params;
 
-    await prisma.set.delete({
-      where: {
-        id: req.params.id
-      }
+    // Check if set exists
+    const existingSet = await prisma.set.findUnique({
+      where: { id },
+      include: { exercise: true },
     });
 
-    res.json({ message: 'Set removed' });
+    if (!existingSet) {
+      return res.status(404).json({ error: "Set not found" });
+    }
+
+    // Delete set
+    await prisma.set.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Set deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error("Error deleting set:", error);
+    res.status(500).json({ error: "Failed to delete set" });
   }
 };
 
@@ -177,5 +143,5 @@ module.exports = {
   getSets,
   createSet,
   updateSet,
-  deleteSet
+  deleteSet,
 }; 

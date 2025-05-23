@@ -6,9 +6,18 @@ const profileRoutes = require("./routes/profile");
 const workoutRoutes = require("./routes/workout");
 const exerciseRoutes = require("./routes/exercise");
 const setRoutes = require("./routes/set");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("./utils/prisma");
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 
-const prisma = new PrismaClient();
+// Add rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per windowMs
+  message: 'Too many requests from this IP'
+});
+
+
 const app = express();
 const PORT = 5000;
 
@@ -21,6 +30,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Middleware
+app.use(limiter);
+app.use(compression());
 app.use(
   cors({
     origin: origins,

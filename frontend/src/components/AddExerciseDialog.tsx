@@ -9,7 +9,7 @@ import axios from "axios";
 import { useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import { Exercise, Workout } from "@/types/workout";
-
+import { SearchDropdown } from "./SearchDropdown";
 interface AddExerciseDialogProps {
   workout: Workout;
   onExerciseAdded?: (exercise: Exercise) => void;
@@ -97,14 +97,8 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
             <Label htmlFor="exerciseName" className="text-right">
               Exercise name
             </Label>
-            <div className="md:col-span-3">
-              <Input
-                id="exerciseName"
-                placeholder="E.g. Bench Press, Squat, etc."
-                value={exerciseName}
-                onChange={(e) => setExerciseName(e.target.value)}
-                className="w-full"
-              />
+            <div className=" md:col-span-3">
+              <SearchDropdown />
             </div>
           </div>
           

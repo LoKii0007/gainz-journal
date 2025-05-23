@@ -28,14 +28,16 @@ model User {
 }
 
 model Profile {
-  id        String    @id @default(uuid())
-  name      String
-  active    Boolean   @default(false)
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  workouts  Workout[]
+  id         String     @id @default(uuid())
+  name       String
+  active     Boolean    @default(false)
+  userId     String
+  weightUnit WeightUnit @default(KG)
+  weightType WeightType @default(PER_SIDE)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  workouts   Workout[]
 }
 
 model Workout {
@@ -59,12 +61,24 @@ model Exercise {
   workout   Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
 }
 
+enum WeightUnit {
+  KG
+  LBS
+}
+
+enum WeightType {
+  TOTAL
+  PER_SIDE
+}
+
 model Set {
-  id         String   @id @default(uuid())
+  id         String     @id @default(uuid())
   reps       Int
   weight     Float
+  unit       WeightUnit @default(KG)
+  weightType WeightType @default(PER_SIDE)
   exerciseId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  exercise   Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 }
