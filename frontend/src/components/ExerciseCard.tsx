@@ -186,8 +186,10 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
       return date.toISOString().split("T")[0]; // formats to YYYY-MM-DD
     });
 
-    // Convert to nested array of sets grouped by day
-    return Object.values(groupedByDay);
+    // Convert to nested array of sets grouped by day and sort by date descending
+    return Object.entries(groupedByDay)
+      .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
+      .map(([_, sets]) => sets);
   }, [exercise.sets, dayStart]);
 
   const formatWeight = (set: Set) => {
@@ -234,6 +236,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
               </div>
               {exercise.sets
                 .filter((s) => new Date(s.createdAt) > dayStart)
+                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .map((set, index) => (
                   <div
                     key={set.id}
@@ -263,7 +266,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
                   </div>
                 ))}
               {setsHistory.map((setOfDay) => (
-                <>
+                <React.Fragment key={setOfDay[0].createdAt}>
                   <div className="text-sm text-muted-foreground py-2 mb-0 text-center flex items-center gap-2">
                     <HistoryIcon size={16} />
                     <span>
@@ -271,7 +274,9 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
                     </span>
                   </div>
 
-                  {setOfDay.map((set, index) => (
+                  {setOfDay
+                    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                    .map((set, index) => (
                     <div key={set.id}>
                       <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
                         <div className="col-span-1">{index + 1}</div>
@@ -280,7 +285,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
                       </div>
                     </div>
                   ))}
-                </>
+                </React.Fragment>
               ))}
             </div>
           ) : (
