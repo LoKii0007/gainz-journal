@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import { Plus, X } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
@@ -138,7 +138,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Sets for {exercise.name}</DialogTitle>
+            <DialogTitle className="text-center mb-2">Add Sets for {exercise.name}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="space-y-3">
@@ -259,8 +259,8 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save Sets"}
+              <Button type="submit" className="flex justify-center items-center" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" size={16} /> : "Save Sets"}
               </Button>
             </div>
           </form>

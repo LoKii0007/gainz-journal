@@ -6,6 +6,7 @@ const profileRoutes = require("./routes/profile");
 const workoutRoutes = require("./routes/workout");
 const exerciseRoutes = require("./routes/exercise");
 const setRoutes = require("./routes/set");
+const userRoutes = require("./routes/user");
 const prisma = require("./utils/prisma");
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
@@ -35,6 +36,7 @@ app.use(compression());
 app.use(
   cors({
     origin: origins,
+    credentials: true
   })
 );
 app.use(express.json());
@@ -50,6 +52,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/workout", workoutRoutes);
 app.use("/api/exercise", exerciseRoutes);
 app.use("/api/set", setRoutes);
+app.use("/api/users", userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

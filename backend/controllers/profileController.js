@@ -14,7 +14,11 @@ const getProfiles = async (req, res) => {
           include: {
             exercises: {
               include: {
-                sets: true,
+                sets: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
               },
             },
           },
@@ -188,7 +192,13 @@ const updateProfile = async (req, res) => {
         workouts: {
           include: {
             exercises: {
-              include: { sets: true },
+              include: {
+                sets: {
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
+              },
             },
           },
           orderBy: {

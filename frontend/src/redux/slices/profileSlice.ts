@@ -1,9 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Profile } from "@/types/user";
 
+// Load initial state from localStorage
+const loadInitialState = (): Profile[] => {
+  try {
+    const savedProfiles = localStorage.getItem('profiles');
+    return savedProfiles ? JSON.parse(savedProfiles) : [];
+  } catch (error) {
+    console.error('Failed to load profiles from localStorage:', error);
+    return [];
+  }
+};
+
 const profileSlice = createSlice({
   name: "profile",
-  initialState : [] as Profile[],
+  initialState: loadInitialState(),
   reducers: {
     setProfiles: (_state, action: PayloadAction<Profile[]>) => {
       return action.payload;

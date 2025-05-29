@@ -1,6 +1,6 @@
 {
-  "name": "kinetic-ink-backend",
-  "version": "1.0.0",
+  "name": "gainz-journal-backend",
+  "version": "0.0.1",
   "main": "index.js",
   "scripts": {
     "start": "npx prisma migrate deploy && prisma generate && node index.js",

@@ -3,6 +3,7 @@ import authReducer from "./slices/authSlice";
 import exerciseReducer from "./slices/exerciseSlice";
 import workoutReducer from "./slices/workoutSlice";
 import profileReducer from "./slices/profileSlice";
+import { localStorageMiddleware } from "./middleware/localStorage";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,8 @@ export const store = configureStore({
     workout: workoutReducer,
     profile: profileReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(localStorageMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -1,11 +1,26 @@
 import { Exercise, ExerciseState, Set } from "@/types/workout";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: ExerciseState = {
-  exercises: [],
-  selectedExercise: null,
-  exerciseHistory: []
+// Load initial state from localStorage
+const loadInitialState = (): ExerciseState => {
+  try {
+    const savedExercises = localStorage.getItem('exercises');
+    return {
+      exercises: savedExercises ? JSON.parse(savedExercises) : [],
+      selectedExercise: null,
+      exerciseHistory: []
+    };
+  } catch (error) {
+    console.error('Failed to load exercises from localStorage:', error);
+    return {
+      exercises: [],
+      selectedExercise: null,
+      exerciseHistory: []
+    };
+  }
 };
+
+const initialState: ExerciseState = loadInitialState();
 
 const exerciseSlice = createSlice({
   name: "exercise",

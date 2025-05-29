@@ -70,10 +70,11 @@ const WorkoutsList: React.FC<WorkoutsListProps> = ({ workouts, onWorkoutUpdate }
             <div className="space-y-2">
               {workout.exercises && workout.exercises.length > 0 ? (
                 <>
-                  {workout.exercises.map((exercise) => (
+                  {workout.exercises.map((exercise, index) => (
                     <ExerciseCard 
                       key={exercise.id} 
                       exercise={exercise} 
+                      index={index}
                       onExerciseDeleted={(exerciseId) => handleExerciseDeleted(workout.id, exerciseId)}
                     />
                   ))}

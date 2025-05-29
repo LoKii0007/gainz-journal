@@ -1,9 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Exercise, Workout } from "@/types/workout";
 
+// Load initial state from localStorage
+const loadInitialState = (): Workout[] => {
+  try {
+    const savedWorkouts = localStorage.getItem('workouts');
+    return savedWorkouts ? JSON.parse(savedWorkouts) : [];
+  } catch (error) {
+    console.error('Failed to load workouts from localStorage:', error);
+    return [];
+  }
+};
+
 const workoutSlice = createSlice({
   name: "workout",
-  initialState: [] as Workout[],
+  initialState: loadInitialState(),
   reducers: {
     setWorkouts: (_state, action: PayloadAction<Workout[]>) => {
       return action.payload;

@@ -18,7 +18,7 @@ const getExercises = async (req, res) => {
       include: {
         sets: {
           orderBy: {
-            createdAt: 'asc'
+            createdAt: 'desc'
           }
         }
       }

@@ -2,15 +2,15 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import AuthRoutes from "./routes/AuthRoutes";
 import PrivateRoutes from "./routes/PrivateRoutes";
-import Login from "./screens/Login";
-import Register from "./screens/Register";
-import Dashboard from "./screens/Dashboard";
-import Workouts from "./screens/Workouts";
-import NotFound from "./screens/NotFound";
-import "./App.css";
+import Login from "./pages/login/Login";
+import Register from "./pages/Register/Register";
+import Dashboard from "./pages/Home/Dashboard";
+import Workouts from "./pages/Workouts/Workouts";
+import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
-import Profile from "./screens/Profile";
+import Profile from "./pages/Profile/Profile";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import "./App.css";
 
 const App = () => {
   const GOOGLE_OAUTH_CLIENT_ID = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID;

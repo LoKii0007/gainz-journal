@@ -25,7 +25,11 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { groupBy } from "lodash";
 import { format } from "date-fns";
-import { weightMeasurements, weightUnits } from "@/lib/constants";
+import {
+  weightMeasurements,
+  weightUnits,
+  allGymExercises,
+} from "@/lib/constants";
 import {
   Select,
   SelectContent,
@@ -33,15 +37,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-
+import { getColorByIndex } from "@/utils/helper";
 interface ExerciseCardProps {
   exercise: Exercise;
   onExerciseDeleted?: (exerciseId: string) => void;
 }
 
-const ExerciseCard: React.FC<ExerciseCardProps> = ({
+const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
   exercise: initialExercise,
   onExerciseDeleted,
+  index,
 }) => {
   const [exercise, setExercise] = useState<Exercise>(initialExercise);
   const [editingSet, setEditingSet] = useState<Set | null>(null);
@@ -186,17 +191,25 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
   }, [exercise.sets, dayStart]);
 
   const formatWeight = (set: Set) => {
-    const weightType = set.weightType === WeightType.PER_SIDE ? 'per side' : 'total';
+    const weightType =
+      set.weightType === WeightType.PER_SIDE ? "per side" : "total";
     return `${set.weight} ${set.unit.toLowerCase()} ${weightType}`;
+  };
+
+  const getExerciseName = () => {
+    const exerciseName: any = allGymExercises.find(
+      (e) => e.value === exercise.name
+    );
+    return exerciseName ? exerciseName.label : exercise.name;
   };
 
   return (
     <>
-      <Card className="w-full">
+      <Card className={`w-full ${getColorByIndex(index)}`}>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-md font-medium flex items-center">
+          <CardTitle className="text-md font-medium flex items-center mb-0">
             <Dumbbell className="mr-2 h-5 w-5" />
-            {exercise.name}
+            {getExerciseName()}
           </CardTitle>
           <div className="flex items-center space-x-2">
             <Button
@@ -315,7 +328,11 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 <Label>Weight Type</Label>
                 <Select
                   value={editingSet?.weightType}
-                  onValueChange={(value) => setEditingSet(prev => prev ? {...prev, weightType: value as WeightType} : null)}
+                  onValueChange={(value) =>
+                    setEditingSet((prev) =>
+                      prev ? { ...prev, weightType: value as WeightType } : null
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Weight type" />
@@ -336,17 +353,18 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({
                 <Label>Unit</Label>
                 <Select
                   value={editingSet?.unit}
-                  onValueChange={(value) => setEditingSet(prev => prev ? {...prev, unit: value as WeightUnit} : null)}
+                  onValueChange={(value) =>
+                    setEditingSet((prev) =>
+                      prev ? { ...prev, unit: value as WeightUnit } : null
+                    )
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Unit" />
                   </SelectTrigger>
                   <SelectContent>
                     {weightUnits.map((unit) => (
-                      <SelectItem
-                        key={unit.value}
-                        value={unit.value}
-                      >
+                      <SelectItem key={unit.value} value={unit.value}>
                         {unit.label}
                       </SelectItem>
                     ))}

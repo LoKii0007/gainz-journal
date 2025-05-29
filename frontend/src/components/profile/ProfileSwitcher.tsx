@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks";
-import { Button } from "@/components/ui/button";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { updateProfile } from "@/redux/slices/profileSlice";
 import { updateProfileId } from "@/redux/slices/authSlice";
 import { UserIcon } from "lucide-react";
 import { setWorkouts } from "@/redux/slices/workoutSlice";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const ProfileSwitcher = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +41,7 @@ const ProfileSwitcher = () => {
     if (profileId === currentProfileId) return;
 
     setIsLoading(true);
+    const loadingToast = toast.loading("Switching profile...");
 
     try {
       // Deactivate current profile
@@ -62,10 +69,14 @@ const ProfileSwitcher = () => {
       // Display success message
       const newProfile = profiles.find((p) => p.id === profileId);
       if (newProfile) {
-        toast.success(`Switched to ${newProfile.name}`);
+        toast.success(`Switched to ${newProfile.name}`, {
+          id: loadingToast
+        });
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to switch profile");
+      toast.error(error.response?.data?.message || "Failed to switch profile", {
+        id: loadingToast
+      });
     } finally {
       setIsLoading(false);
     }
@@ -77,31 +88,40 @@ const ProfileSwitcher = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col space-y-1.5">
-        <h3 className="text-sm font-medium leading-none">Current Profile</h3>
-        <p className="text-sm text-muted-foreground">
-          {currentProfile ? currentProfile.name : "No active profile"}
-        </p>
-      </div>
-
-      <div className="grid gap-2">
-        <h3 className="text-sm font-medium leading-none mb-2">
-          Switch Profile
-        </h3>
-        <div className="grid gap-2">
-          {profiles.map((profile) => (
-            <Button
-              key={profile.id}
-              variant={profile.id === currentProfileId ? "default" : "outline"}
-              className="justify-start"
-              disabled={isLoading || profile.id === currentProfileId}
-              onClick={() => handleSwitchProfile(profile.id)}
-            >
-              <UserIcon className="mr-2 h-4 w-4" />
-              {profile.name}
-            </Button>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 items-center gap-2">
+        <Label>Active Profile</Label>
+        <Select
+          value={currentProfileId || undefined}
+          onValueChange={handleSwitchProfile}
+          disabled={isLoading}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select profile">
+              {currentProfile ? (
+                <div className="flex items-center">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  {currentProfile.name}
+                </div>
+              ) : (
+                "Select profile"
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {profiles.map((profile) => (
+              <SelectItem
+                key={profile.id}
+                value={profile.id}
+                className="flex items-center"
+              >
+                <div className="flex items-center">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  {profile.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

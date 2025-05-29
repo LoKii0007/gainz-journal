@@ -47,7 +47,11 @@ const getWorkoutById = async (req, res) => {
       include: {
         exercises: {
           include: {
-            sets: true,
+            sets: {
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
           },
         },
         profile: true,

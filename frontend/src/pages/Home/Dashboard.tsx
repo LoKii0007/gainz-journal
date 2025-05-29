@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { useAppDispatch, useAppSelector } from "../../lib/hooks";
 import {
   setWorkouts,
   deleteExerciseFromWorkout,
-} from "../redux/slices/workoutSlice";
-import { Workout, Exercise } from "../types/workout";
+} from "../../redux/slices/workoutSlice";
+import { Workout, Exercise } from "../../types/workout";
 import axios from "axios";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { getDayOfWeek } from "../lib/helpers";
-import AddWorkoutDialog from "../components/AddWorkoutDialog";
-import ExerciseCard from "../components/ExerciseCard";
-import AddExerciseDialog from "../components/AddExerciseDialog";
+import { getDayOfWeek } from "../../lib/helpers";
+import AddWorkoutDialog from "../../components/AddWorkoutDialog";
+import ExerciseCard from "../../components/ExerciseCard";
+import AddExerciseDialog from "../../components/AddExerciseDialog";
 import DeleteDialog from "@/components/DeleteDialog";
 import WorkoutsList from "@/components/WorkoutsList";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -160,11 +160,12 @@ const Dashboard = () => {
 
               {todayExercises.length > 0 ? (
                 <div className="space-y-3">
-                  {todayExercises.map((exercise) => (
+                  {todayExercises.map((exercise, index) => (
                     <ExerciseCard
                       key={exercise.id}
                       exercise={exercise}
                       onExerciseDeleted={handleExerciseDeleted}
+                      index={index}
                     />
                   ))}
 
@@ -195,13 +196,13 @@ const Dashboard = () => {
               )}
             </div>
           ) : (
-            <div className="rounded-lg border bg-card p-6 flex flex-col items-center justify-center">
+            <div className="rounded-lg border bg-card p-6 flex flex-col items-center justify-center space-y-4">
               <h2 className="text-xl font-semibold mb-2">
                 No Workout Planned for Today
               </h2>
-              <p className="text-muted-foreground mb-6">
-                Start your fitness journey by adding a workout for today
-              </p>
+              <div>
+                <img className="w-15" src={`/images/no-workout-${user.gender === null ? "male" : user.gender === "MALE" ? "male" : "female"}.png`} alt="No Workout" />
+              </div>
               <AddWorkoutDialog />
             </div>
           )}

@@ -7,7 +7,7 @@ const prisma = require("../utils/prisma");
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, gender } = req.body;
 
     if (!email || !password || !name) {
       return res
@@ -33,10 +33,13 @@ const registerUser = async (req, res) => {
       data: {
         email,
         password: hashedPassword,
+        name,
+        gender,
         profiles: {
           create: {
             name,
             active: true,
+            gender,
           },
         },
       },
@@ -50,6 +53,8 @@ const registerUser = async (req, res) => {
         user: {
           id: user.id,
           email: user.email,
+          name: user.name,
+          gender: user.gender,
           profiles: user.profiles,
         },
         token: generateToken(user.id),
@@ -129,6 +134,8 @@ const getUser = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        gender: user.gender,
       },
       profiles: user?.profiles,
       currentProfileId: user?.profiles[0]?.id,

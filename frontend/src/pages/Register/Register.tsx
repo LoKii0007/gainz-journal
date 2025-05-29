@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../lib/hooks";
-import { login } from "../redux/slices/authSlice";
+import { useAppDispatch } from "../../lib/hooks";
+import { login } from "../../redux/slices/authSlice";
 import axios from "axios";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import SignupWithGoogle from "@/components/auth/SignupWithGoogle";
+import { Gender } from "@/types/user";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const registerSchema = z
   .object({
@@ -16,6 +24,7 @@ const registerSchema = z
       .string()
       .min(6, "Password must be at least 6 characters"),
     name: z.string().min(2, "Name must be at least 2 characters"),
+    gender: z.nativeEnum(Gender).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -36,6 +45,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     name: "",
+    gender: undefined,
   });
   const [validationErrors, setValidationErrors] = useState<
     Partial<RegisterInputs>
@@ -50,6 +60,13 @@ const Register = () => {
     }
   };
 
+  const handleGenderChange = (value: Gender) => {
+    setFormData((prev) => ({ ...prev, gender: value }));
+    if (validationErrors.gender) {
+      setValidationErrors((prev) => ({ ...prev, gender: undefined }));
+    }
+  };
+
   const validateForm = (): boolean => {
     try {
       registerSchema.parse(formData);
@@ -58,10 +75,6 @@ const Register = () => {
     } catch (err) {
       if (err instanceof z.ZodError) {
         const errors: Partial<RegisterInputs> = {};
-        err.errors.forEach((error) => {
-          const path = error.path[0] as keyof RegisterInputs;
-          errors[path] = error.message;
-        });
         setValidationErrors(errors);
       }
       return false;
@@ -81,6 +94,7 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
         name: formData.name,
+        gender: formData.gender,
       };
 
       const res = await axios.post(
@@ -146,6 +160,30 @@ const Register = () => {
             {validationErrors.name && (
               <p className="mt-1 text-sm text-destructive">
                 {validationErrors.name}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Select 
+              value={formData.gender || undefined} 
+              onValueChange={(value: Gender) => handleGenderChange(value)}
+            >
+              <SelectTrigger
+                className={`w-full ${
+                  validationErrors.gender ? "border-destructive" : ""
+                }`}
+              >
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={Gender.MALE}>Male</SelectItem>
+                <SelectItem value={Gender.FEMALE}>Female</SelectItem>
+              </SelectContent>
+            </Select>
+            {validationErrors.gender && (
+              <p className="mt-1 text-sm text-destructive">
+                {validationErrors.gender}
               </p>
             )}
           </div>
