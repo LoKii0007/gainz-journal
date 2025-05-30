@@ -1,9 +1,9 @@
-import { User } from "./user";
+// import { User } from "./user";
 
 export type Gender = "MALE" | "FEMALE";
 
 export interface AuthState {
-  user: User | null;
+  // user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   email: string | null;

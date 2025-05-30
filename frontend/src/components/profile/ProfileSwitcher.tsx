@@ -110,13 +110,13 @@ const ProfileSwitcher = () => {
           <SelectContent>
             {profiles.map((profile) => (
               <SelectItem
-                key={profile.id}
-                value={profile.id}
+                key={profile?.id}
+                value={profile?.id}
                 className="flex items-center"
               >
                 <div className="flex items-center">
                   <UserIcon className="mr-2 h-4 w-4" />
-                  {profile.name}
+                  {profile?.name}
                 </div>
               </SelectItem>
             ))}

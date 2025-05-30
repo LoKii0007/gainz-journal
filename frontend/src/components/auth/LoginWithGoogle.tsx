@@ -37,11 +37,11 @@ function LoginWithGoogle({
       dispatch(
         login({
           user: response.data.user,
-          token: res.data.token,
-          currentProfileId: res.data.currentProfileId,
+          token: response.data.token,
+          currentProfileId: response.data.currentProfileId,
         })
       );
-      dispatch(setProfiles(res.data.profiles));
+      dispatch(setProfiles(response.data.profiles));
 
       navigate("/");
     } catch (error: any) {

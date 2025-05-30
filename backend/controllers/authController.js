@@ -39,7 +39,6 @@ const registerUser = async (req, res) => {
           create: {
             name,
             active: true,
-            gender,
           },
         },
       },
@@ -100,10 +99,7 @@ const loginUser = async (req, res) => {
     }
 
     res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-      },
+      user,
       currentProfileId: user?.profiles[0]?.id,
       profiles: user?.profiles,
       token: generateToken(user.id),

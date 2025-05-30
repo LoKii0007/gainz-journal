@@ -43,7 +43,7 @@ const AddProfileDialog = () => {
         }
       );
 
-      dispatch(addProfile(res.data.profile));
+      dispatch(addProfile(res.data));
       
       toast.success("Profile created successfully");
       setOpen(false);

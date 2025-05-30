@@ -3,7 +3,7 @@ import { User } from "@/types/user";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: AuthState = {
-  user: null,
+  // user: null,
   token: localStorage.getItem("token"),
   isAuthenticated: false,
   email: null,
@@ -17,7 +17,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<{ user: User; token: string, currentProfileId: string }>) => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.name = action.payload.user.name || null;
       state.gender = action.payload.user.gender || null;
       state.token = action.payload.token;
@@ -27,14 +27,14 @@ const authSlice = createSlice({
       localStorage.setItem("token", action.payload.token);
     },
     updateUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
+      // state.user = action.payload;
       state.email = action.payload.email;
     },
     updateProfileId: (state, action: PayloadAction<string>) => {
       state.currentProfileId = action.payload;
     },
     logout: (state) => {
-      state.user = null;
+      // state.user = null;
       state.name = null;
       state.gender = null;
       state.token = null;

@@ -41,7 +41,7 @@ const Profile = () => {
   const profiles = useAppSelector((state) => state.profile);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const user = useAppSelector((state) => state.auth.user);
+  const user = useAppSelector((state) => state.auth);
 
   const currentProfile = profiles.find(p => p.id === currentProfileId);
 
@@ -49,7 +49,7 @@ const Profile = () => {
     if (currentProfile) {
       setEditableFields({
         name: user?.name || "",
-        gender: user?.gender || undefined,
+        gender: (user?.gender as Gender) || undefined,
       });
     }
   }, [currentProfile]);
