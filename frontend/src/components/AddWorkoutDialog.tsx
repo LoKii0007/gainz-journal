@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { DialogHeader, DialogTitle } from "./ui/dialog";
 import { Input } from "./ui/input";
@@ -24,7 +24,7 @@ interface ExerciseItem {
 }
 
 const AddWorkoutDialog = React.memo(() => {
-  const [exerciseName, setExerciseName] = useState("");
+  // const [exerciseName, setExerciseName] = useState("");
   const [loading, setLoading] = useState(false);
   const initialState = {
     workoutDay: "",
@@ -46,27 +46,27 @@ const AddWorkoutDialog = React.memo(() => {
   };
 
   // Add exercise to temp list
-  const addExerciseToList = useCallback(() => {
-    if (!exerciseName.trim()) {
-      toast.error("Please enter an exercise name");
-      return;
-    }
+  // const addExerciseToList = useCallback(() => {
+  //   if (!exerciseName.trim()) {
+  //     toast.error("Please enter an exercise name");
+  //     return;
+  //   }
 
-    updateFormState("exerciseList", [
-      ...formState.exerciseList,
-      { name: exerciseName },
-    ]);
-    setExerciseName("");
-  }, [exerciseName, formState.exerciseList]);
+  //   updateFormState("exerciseList", [
+  //     ...formState.exerciseList,
+  //     { name: exerciseName },
+  //   ]);
+  //   setExerciseName("");
+  // }, [exerciseName, formState.exerciseList]);
 
   // Remove exercise from temp list
-  const removeExercise = useCallback(
-    (index: number) => {
-      const updatedList = formState.exerciseList.filter((_, i) => i !== index);
-      updateFormState("exerciseList", updatedList);
-    },
-    [formState.exerciseList]
-  );
+  // const removeExercise = useCallback(
+  //   (index: number) => {
+  //     const updatedList = formState.exerciseList.filter((_, i) => i !== index);
+  //     updateFormState("exerciseList", updatedList);
+  //   },
+  //   [formState.exerciseList]
+  // );
 
   // Handle form submission
   const handleSubmit = useCallback(
@@ -80,10 +80,10 @@ const AddWorkoutDialog = React.memo(() => {
         return;
       }
 
-      if (exerciseList.length === 0) {
-        toast.error("Please add at least one exercise");
-        return;
-      }
+      // if (exerciseList.length === 0) {
+      //   toast.error("Please add at least one exercise");
+      //   return;
+      // }
 
       try {
         setLoading(true);
@@ -111,7 +111,7 @@ const AddWorkoutDialog = React.memo(() => {
 
         // Reset form
         setFormState(initialState);
-        setExerciseName("");
+        // setExerciseName("");
         setIsOpen(false);
       } catch (error: any) {
         console.error("Error creating workout:", error);
@@ -136,7 +136,7 @@ const AddWorkoutDialog = React.memo(() => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Workout</DialogTitle>
+            <DialogTitle className="text-center">Add Workout</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid grid-cols-3 items-center gap-2">
@@ -177,7 +177,7 @@ const AddWorkoutDialog = React.memo(() => {
             </div>
 
             {/* Exercise Inputs */}
-            <div className="space-y-3 mt-2">
+            {/* <div className="space-y-3 mt-2">
               <h3 className="font-medium">Exercises</h3>
 
               {formState.exerciseList.map((exercise, index) => (
@@ -201,7 +201,6 @@ const AddWorkoutDialog = React.memo(() => {
                 </div>
               ))}
 
-              {/* New Exercise Input */}
               <div className="flex items-center gap-2">
                 <div className="flex-grow">
                   <Input
@@ -222,7 +221,7 @@ const AddWorkoutDialog = React.memo(() => {
                   <Plus size={16} /> Add
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-2 gap-6 mt-4">
               <Button
