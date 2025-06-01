@@ -119,7 +119,6 @@ const Register = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen flex flex-col justify-center p-4 w-screen">
@@ -144,15 +143,15 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center px-2 rounded-md border">
+              <User className="h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Your name"
-                className={`w-full p-3 pl-10 rounded-md border ${
+                className={`w-full p-2 focus:outline-none ${
                   validationErrors.name ? "border-destructive" : "border-input"
                 } bg-background`}
               />
@@ -165,8 +164,29 @@ const Register = () => {
           </div>
 
           <div>
-            <Select 
-              value={formData.gender || undefined} 
+            <div className="flex items-center px-2 rounded-md border">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email address"
+                className={`w-full p-2 focus:outline-none ${
+                  validationErrors.email ? "border-destructive" : "border-input"
+                } bg-background`}
+              />
+            </div>
+            {validationErrors.email && (
+              <p className="mt-1 text-sm text-destructive">
+                {validationErrors.email}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Select
+              value={formData.gender || undefined}
               onValueChange={(value: Gender) => handleGenderChange(value)}
             >
               <SelectTrigger
@@ -184,27 +204,6 @@ const Register = () => {
             {validationErrors.gender && (
               <p className="mt-1 text-sm text-destructive">
                 {validationErrors.gender}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Email address"
-                className={`w-full p-3 pl-10 rounded-md border ${
-                  validationErrors.email ? "border-destructive" : "border-input"
-                } bg-background`}
-              />
-            </div>
-            {validationErrors.email && (
-              <p className="mt-1 text-sm text-destructive">
-                {validationErrors.email}
               </p>
             )}
           </div>

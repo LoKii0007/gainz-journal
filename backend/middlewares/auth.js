@@ -22,7 +22,6 @@ const protect = async (req, res, next) => {
         select: {
           id: true,
           email: true,
-          googleId: true,
           createdAt: true,
           updatedAt: true
         }
