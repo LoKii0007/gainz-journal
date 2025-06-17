@@ -76,12 +76,6 @@ const updateSet = async (req, res) => {
     const { id } = req.params;
     const { reps, weight, unit, weightType } = req.body;
 
-    // Validate input
-    const validationError = validateSet(req.body);
-    if (validationError) {
-      return res.status(400).json({ error: validationError });
-    }
-
     // Check if set exists
     const existingSet = await prisma.set.findUnique({
       where: { id },

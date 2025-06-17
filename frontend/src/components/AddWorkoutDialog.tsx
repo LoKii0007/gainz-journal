@@ -223,7 +223,7 @@ const AddWorkoutDialog = React.memo(() => {
               </div>
             </div> */}
 
-            <div className="grid grid-cols-2 gap-6 mt-4">
+            <div className="grid grid-cols-2 gap-6 mt-4 w-full">
               <Button
                 type="button"
                 variant="outline"

@@ -32,6 +32,7 @@ const authSlice = createSlice({
     },
     updateProfileId: (state, action: PayloadAction<string>) => {
       state.currentProfileId = action.payload;
+      localStorage.setItem("currentProfileId", action.payload);
     },
     logout: (state) => {
       // state.user = null;

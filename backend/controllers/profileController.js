@@ -14,11 +14,7 @@ const getProfiles = async (req, res) => {
           include: {
             exercises: {
               include: {
-                sets: {
-                  orderBy: {
-                    createdAt: "desc",
-                  },
-                },
+                sets: {},
               },
             },
           },
@@ -93,11 +89,9 @@ const createProfile = async (req, res) => {
     // Validate weightType
     const validWeightTypes = ["TOTAL", "PER_SIDE"];
     if (weightType && !validWeightTypes.includes(weightType)) {
-      return res
-        .status(400)
-        .json({
-          error: "Invalid weight type. Must be either TOTAL or PER_SIDE",
-        });
+      return res.status(400).json({
+        error: "Invalid weight type. Must be either TOTAL or PER_SIDE",
+      });
     }
 
     // Check if user already has an active profile
@@ -159,11 +153,9 @@ const updateProfile = async (req, res) => {
     // Validate weightType
     const validWeightTypes = ["TOTAL", "PER_SIDE"];
     if (weightType && !validWeightTypes.includes(weightType)) {
-      return res
-        .status(400)
-        .json({
-          error: "Invalid weight type. Must be either TOTAL or PER_SIDE",
-        });
+      return res.status(400).json({
+        error: "Invalid weight type. Must be either TOTAL or PER_SIDE",
+      });
     }
 
     // If setting this profile as active, deactivate all other profiles
@@ -241,7 +233,22 @@ const deleteProfile = async (req, res) => {
       where: { id },
     });
 
-    res.json({ message: "Profile deleted successfully" });
+    const profile = await prisma.profile.findFirst({
+      where: {
+        userId: req.user.id,
+      },
+    });
+
+    const activeProfile = await prisma.profile.update({
+      where: {
+        id: profile.id,
+      },
+      data: {
+        active: true,
+      },
+    });
+
+    res.json({ message: "Profile deleted successfully", activeProfile });
   } catch (error) {
     console.error("Error deleting profile:", error);
     res.status(500).json({ error: "Failed to delete profile" });
