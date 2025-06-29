@@ -79,7 +79,7 @@ export default function LandingPage() {
             <div className="space-y-6">
               <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
                 <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                100% Free Forever
+                Free For Now
               </div>
 
               <h1 className="text-6xl lg:text-7xl font-bold leading-tight">
@@ -118,7 +118,7 @@ export default function LandingPage() {
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-slate-300">∞</div>
-                <div className="text-sm text-gray-400 mt-1">Free Forever</div>
+                <div className="text-sm text-gray-400 mt-1">Free For Now</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-300">1</div>
@@ -251,10 +251,10 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Trophy className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-xl font-semibold mb-4">Always Free</h3>
+            <h3 className="text-xl font-semibold mb-4">Free For Now</h3>
             <p className="text-gray-300">
               No subscriptions, no premium features, no limits. Track your
-              workouts forever, completely free.
+              workouts for free.
             </p>
           </div>
         </div>
