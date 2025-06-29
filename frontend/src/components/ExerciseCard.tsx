@@ -50,7 +50,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
   onExerciseDeleted,
   index,
 }) => {
-  const [exercise, setExercise] = useState<Exercise>(initialExercise);
+  const exercise = useMemo<Exercise>(() => initialExercise, []);
   const [editingSet, setEditingSet] = useState<Set | null>(null);
   const [deletingSet, setDeletingSet] = useState<Set | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -66,7 +66,9 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
   const sets = useAppSelector((state) => state.set.sets);
 
   const exerciseSets = useMemo(() => {
-    return Object.values(sets).filter(set => set.exerciseId === exercise.id) as Set[];
+    return Object.values(sets).filter(
+      (set) => set.exerciseId === exercise.id
+    ) as Set[];
   }, [sets, exercise.id]);
 
   const dayStart = useMemo(() => {
@@ -77,7 +79,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
 
   // Handle sets being added
   const handleSetsAdded = (newSets: Set[]) => {
-    newSets.forEach(set => {
+    newSets.forEach((set) => {
       dispatch(addSet(set));
     });
   };
@@ -161,7 +163,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
       );
 
       // Delete all associated sets
-      exerciseSets.forEach(set => {
+      exerciseSets.forEach((set) => {
         dispatch(removeSet(set.id));
       });
 
@@ -192,7 +194,10 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
 
     // Convert to nested array of sets grouped by day and sort by date descending
     return Object.entries(groupedByDay)
-      .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
+      .sort(
+        ([dateA], [dateB]) =>
+          new Date(dateB).getTime() - new Date(dateA).getTime()
+      )
       .map(([_, sets]) => sets);
   }, [exerciseSets, dayStart]);
 
@@ -240,7 +245,11 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
               </div>
               {exerciseSets
                 .filter((s) => new Date(s.createdAt) > dayStart)
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                )
                 .map((set, index) => (
                   <div
                     key={set.id}
@@ -279,16 +288,20 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
                   </div>
 
                   {setOfDay
-                    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                    .sort(
+                      (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime()
+                    )
                     .map((set, index) => (
-                    <div key={set.id}>
-                      <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
-                        <div className="col-span-1">{index + 1}</div>
-                        <div className="col-span-3">{set.reps}</div>
-                        <div className="col-span-4">{formatWeight(set)}</div>
+                      <div key={set.id}>
+                        <div className="grid grid-cols-12 text-sm py-1.5 border-b last:border-0 items-center">
+                          <div className="col-span-1">{index + 1}</div>
+                          <div className="col-span-3">{set.reps}</div>
+                          <div className="col-span-4">{formatWeight(set)}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </React.Fragment>
               ))}
             </div>
@@ -463,7 +476,11 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
           <div className="py-3">
             <p>
               Are you sure you want to delete the exercise{" "}
-              <span className="font-semibold">{allGymExercises.find((e) => e.value === exercise.name)?.label || exercise.name}</span>?
+              <span className="font-semibold">
+                {allGymExercises.find((e) => e.value === exercise.name)
+                  ?.label || exercise.name}
+              </span>
+              ?
             </p>
             <p className="text-sm text-muted-foreground mt-2">
               This will permanently delete all {exerciseSets.length} sets

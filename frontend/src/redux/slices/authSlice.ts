@@ -35,18 +35,16 @@ const authSlice = createSlice({
       localStorage.setItem("currentProfileId", action.payload);
     },
     logout: (state) => {
-      // state.user = null;
+      // Clear auth state
       state.name = null;
       state.gender = null;
       state.token = null;
       state.isAuthenticated = false;
       state.email = null;
       state.currentProfileId = null;
-      localStorage.removeItem("token");
-      localStorage.removeItem("profiles");
-      localStorage.removeItem("workouts");
-      localStorage.removeItem("currentProfileId");
-      localStorage.removeItem("exercises");
+
+      // Clear all localStorage items
+      localStorage.clear(); // This will clear everything including token, profiles, workouts, exercises, sets, etc.
     },
   },
 });
