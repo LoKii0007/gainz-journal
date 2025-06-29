@@ -6,6 +6,7 @@ import { login } from "@/redux/slices/authSlice";
 import { setProfiles } from "@/redux/slices/profileSlice";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { Profile } from "@/types/user";
 
 function LoginWithGoogle({
   loading,
@@ -22,6 +23,7 @@ function LoginWithGoogle({
       const decoded: any = jwtDecode(res.credential);
       if (!decoded) {
         toast.error("Google login failed. Please try again.");
+        return;
       }
 
       const userData = {
@@ -41,7 +43,13 @@ function LoginWithGoogle({
           currentProfileId: response.data.currentProfileId,
         })
       );
-      dispatch(setProfiles(response.data.profiles));
+
+      const profiles = response.data.profiles as Profile[];
+      dispatch(setProfiles(profiles));
+
+      localStorage.removeItem("workouts");
+      localStorage.removeItem("exercises");
+      localStorage.removeItem("sets");
 
       navigate("/");
     } catch (error: any) {
@@ -60,10 +68,11 @@ function LoginWithGoogle({
 
   return (
     <>
-      <button disabled={loading} className="google flex justify-center w-fit ">
+      <button disabled={loading} className="google flex justify-center w-fit">
         <GoogleLogin onSuccess={loginCredentials} onError={loginError} />
       </button>
     </>
   );
 }
+
 export default LoginWithGoogle;

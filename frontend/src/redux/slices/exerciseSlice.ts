@@ -1,117 +1,47 @@
-import { Exercise, ExerciseState, Set } from "@/types/workout";
+import { Exercise } from "@/types/workout";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { removeSet } from "./setSlice";
+import { AppDispatch } from "../store";
 
-// Load initial state from localStorage
-const loadInitialState = (): ExerciseState => {
-  try {
-    const savedExercises = localStorage.getItem('exercises');
-    return {
-      exercises: savedExercises ? JSON.parse(savedExercises) : [],
-      selectedExercise: null,
-      exerciseHistory: []
-    };
-  } catch (error) {
-    console.error('Failed to load exercises from localStorage:', error);
-    return {
-      exercises: [],
-      selectedExercise: null,
-      exerciseHistory: []
-    };
-  }
-};
+interface ExerciseState {
+  exercises: Record<string, Exercise>;
+}
 
-const initialState: ExerciseState = loadInitialState();
+const initialState: ExerciseState = { exercises: {} };
 
 const exerciseSlice = createSlice({
-  name: "exercise",
+  name: "exercises",
   initialState,
   reducers: {
-    setExercises: (state, action: PayloadAction<Exercise[]>) => {
-      state.exercises = action.payload;
+    addExercise(state, action: PayloadAction<Exercise>) {
+      state.exercises[action.payload.id] = action.payload;
     },
-    addExercise: (state, action: PayloadAction<Exercise>) => {
-      state.exercises.push(action.payload);
+    updateExercise(state, action: PayloadAction<Partial<Exercise> & { id: string }>) {
+      const { id, ...rest } = action.payload;
+      state.exercises[id] = { ...state.exercises[id], ...rest };
     },
-    updateExercise: (state, action: PayloadAction<Exercise>) => {
-      const index = state.exercises.findIndex(ex => ex.id === action.payload.id);
-      if (index !== -1) {
-        state.exercises[index] = action.payload;
-      }
-      if (state.selectedExercise?.id === action.payload.id) {
-        state.selectedExercise = action.payload;
-      }
+    removeExercise(state, action: PayloadAction<string>) {
+      delete state.exercises[action.payload];
     },
-    deleteExercise: (state, action: PayloadAction<string>) => {
-      state.exercises = state.exercises.filter(ex => ex.id !== action.payload);
-      if (state.selectedExercise?.id === action.payload) {
-        state.selectedExercise = null;
-      }
-    },
-    setSelectedExercise: (state, action: PayloadAction<Exercise | null>) => {
-      state.selectedExercise = action.payload;
-    },
-    addSet: (state, action: PayloadAction<{ exerciseId: string, set: Set }>) => {
-      const { exerciseId, set } = action.payload;
-      const exerciseIndex = state.exercises.findIndex(ex => ex.id === exerciseId);
-      
-      if (exerciseIndex !== -1) {
-        state.exercises[exerciseIndex].sets.push(set);
-      }
-      
-      if (state.selectedExercise?.id === exerciseId) {
-        state.selectedExercise.sets.push(set);
-      }
-    },
-    updateSet: (state, action: PayloadAction<{ exerciseId: string, set: Set }>) => {
-      const { exerciseId, set } = action.payload;
-      const exerciseIndex = state.exercises.findIndex(ex => ex.id === exerciseId);
-      
-      if (exerciseIndex !== -1) {
-        const setIndex = state.exercises[exerciseIndex].sets.findIndex(s => s.id === set.id);
-        if (setIndex !== -1) {
-          state.exercises[exerciseIndex].sets[setIndex] = set;
-        }
-      }
-      
-      if (state.selectedExercise?.id === exerciseId) {
-        const setIndex = state.selectedExercise.sets.findIndex(s => s.id === set.id);
-        if (setIndex !== -1) {
-          state.selectedExercise.sets[setIndex] = set;
-        }
-      }
-    },
-    deleteSet: (state, action: PayloadAction<{ exerciseId: string, setId: string }>) => {
-      const { exerciseId, setId } = action.payload;
-      const exerciseIndex = state.exercises.findIndex(ex => ex.id === exerciseId);
-      
-      if (exerciseIndex !== -1) {
-        state.exercises[exerciseIndex].sets = state.exercises[exerciseIndex].sets.filter(s => s.id !== setId);
-      }
-      
-      if (state.selectedExercise?.id === exerciseId) {
-        state.selectedExercise.sets = state.selectedExercise.sets.filter(s => s.id !== setId);
-      }
-    },
-    setExerciseHistory: (state, action: PayloadAction<Exercise[]>) => {
-      state.exerciseHistory = action.payload;
-    },
-    clearExerciseHistory: (state) => {
-      state.exerciseHistory = [];
-    }
   },
 });
 
-export const {
-  setExercises,
-  addExercise,
-  updateExercise,
-  deleteExercise,
-  setSelectedExercise,
-  addSet,
-  updateSet,
-  deleteSet,
-  setExerciseHistory,
-  clearExerciseHistory
-} = exerciseSlice.actions;
+export const { addExercise, updateExercise, removeExercise } = exerciseSlice.actions;
 
-export default exerciseSlice.reducer; 
+// Thunk to handle cascading deletes
+export const deleteExerciseWithSets = (exerciseId: string) => async (dispatch: AppDispatch, getState: () => any) => {
+  const state = getState();
+  const sets = state.set.sets;
+  
+  // Delete all sets that belong to this exercise
+  Object.entries(sets).forEach(([setId, set]: [string, any]) => {
+    if (set.exerciseId === exerciseId) {
+      dispatch(removeSet(setId));
+    }
+  });
+  
+  // Then delete the exercise
+  dispatch(removeExercise(exerciseId));
+};
+
+export default exerciseSlice.reducer;

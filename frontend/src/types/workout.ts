@@ -52,7 +52,6 @@ export interface Exercise {
   id: string;
   name: string;
   workoutId: string;
-  sets: Set[];
   createdAt: string;
 }
 
@@ -62,7 +61,7 @@ export interface Workout {
   day: Days;
   profileId: string;
   createdAt: string;
-  exercises: Exercise[];
+  exerciseIds: string[];
 }
 
 export interface ExerciseState {

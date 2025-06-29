@@ -1,73 +1,51 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Exercise, Workout } from "@/types/workout";
+import { Workout } from "@/types/workout";
+import { removeExercise } from "./exerciseSlice";
+import { AppDispatch } from "../store";
 
-// Load initial state from localStorage
-const loadInitialState = (): Workout[] => {
-  try {
-    const savedWorkouts = localStorage.getItem('workouts');
-    return savedWorkouts ? JSON.parse(savedWorkouts) : [];
-  } catch (error) {
-    console.error('Failed to load workouts from localStorage:', error);
-    return [];
-  }
-};
+interface WorkoutState {
+  workouts: Record<string, Workout>;
+}
+
+const initialState: WorkoutState = { workouts: {} };
 
 const workoutSlice = createSlice({
-  name: "workout",
-  initialState: loadInitialState(),
+  name: "workouts",
+  initialState,
   reducers: {
-    setWorkouts: (_state, action: PayloadAction<Workout[]>) => {
-      return action.payload;
+    addWorkout(state, action: PayloadAction<Workout>) {
+      state.workouts[action.payload.id] = action.payload;
     },
-    addWorkout: (state, action: PayloadAction<Workout>) => {
-      state.push(action.payload);
+    updateWorkout(state, action: PayloadAction<Partial<Workout> & { id: string }>) {
+      const { id, ...rest } = action.payload;
+      state.workouts[id] = { ...state.workouts[id], ...rest };
     },
-    updateWorkout: (state, action: PayloadAction<Workout>) => {
-      const index = state.findIndex((w) => w.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = action.payload;
-      }
+    removeWorkout(state, action: PayloadAction<string>) {
+      delete state.workouts[action.payload];
     },
-    deleteWorkout: (state, action: PayloadAction<string>) => {
-      return state.filter((w) => w.id !== action.payload);
-    },
-    addExerciseToWorkout: (
-      state,
-      action: PayloadAction<{ workoutId: string; exercise: Exercise }>
-    ) => {
-      const { workoutId, exercise } = action.payload;
-      const workoutIndex = state.findIndex((w) => w.id === workoutId);
-
-      if (workoutIndex !== -1) {
-        if (!state[workoutIndex].exercises) {
-          state[workoutIndex].exercises = [];
-        }
-        state[workoutIndex].exercises.push(exercise);
-      }
-    },
-    deleteExerciseFromWorkout: (
-      state,
-      action: PayloadAction<{ workoutId: string; exerciseId: string }>
-    ) => {
-      const { workoutId, exerciseId } = action.payload;
-      const workoutIndex = state.findIndex((w) => w.id === workoutId);
-
-      if (workoutIndex !== -1 && state[workoutIndex].exercises) {
-        state[workoutIndex].exercises = state[workoutIndex].exercises.filter(
-          (e) => e.id !== exerciseId
-        );
-      }
+    setWorkouts(state, action: PayloadAction<Workout[]>) {
+      // Convert array to normalized object
+      state.workouts = action.payload.reduce((acc, workout) => {
+        acc[workout.id] = workout;
+        return acc;
+      }, {} as Record<string, Workout>);
     },
   },
 });
 
-export const {
-  setWorkouts,
-  addWorkout,
-  updateWorkout,
-  deleteWorkout,
-  addExerciseToWorkout,
-  deleteExerciseFromWorkout,
-} = workoutSlice.actions;
+export const { addWorkout, updateWorkout, removeWorkout, setWorkouts } = workoutSlice.actions;
+
+// Thunk to handle cascading deletes
+export const deleteWorkoutWithExercises = (workoutId: string) => async (dispatch: AppDispatch, getState: () => any) => {
+  const workout = getState().workout.workouts[workoutId];
+  if (workout) {
+    // Delete all exercises first
+    workout.exerciseIds.forEach((exerciseId: string) => {
+      dispatch(removeExercise(exerciseId));
+    });
+    // Then delete the workout
+    dispatch(removeWorkout(workoutId));
+  }
+};
 
 export default workoutSlice.reducer;

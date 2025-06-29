@@ -2,10 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../lib/hooks";
 import {
-  setWorkouts,
-  deleteExerciseFromWorkout,
+  addWorkout,
+  updateWorkout,
 } from "../../redux/slices/workoutSlice";
-import { Workout, Exercise } from "../../types/workout";
+import { addExercise, removeExercise } from "../../redux/slices/exerciseSlice";
+import { addSet } from "../../redux/slices/setSlice";
+import { Workout, Exercise, Set as WorkoutSet } from "../../types/workout";
 import axios from "axios";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
@@ -18,12 +20,16 @@ import DeleteDialog from "@/components/DeleteDialog";
 import WorkoutsList from "@/components/WorkoutsList";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface WorkoutResponse extends Omit<Workout, 'exerciseIds'> {
+  exercises: (Exercise & { sets: WorkoutSet[] })[];
+}
+
 const Dashboard = () => {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
-  const workouts = useAppSelector((state) => state.workout);
+  const workouts = useAppSelector((state) => state.workout.workouts);
+  const exercises = useAppSelector((state) => state.exercise.exercises);
   const [todayWorkout, setTodayWorkout] = useState<Workout | null>(null);
-  const [todayExercises, setTodayExercises] = useState<Exercise[]>([]);
   const user = useSelector((state: any) => state.auth);
 
   useEffect(() => {
@@ -32,18 +38,17 @@ const Dashboard = () => {
     }
   }, [user]);
 
-  const handleTodaysWorkout = useCallback((workouts: Workout[]) => {
+  const handleTodaysWorkout = useCallback((workouts: Record<string, Workout>) => {
     const today = getDayOfWeek(new Date());
-    const todayWo = workouts.find(
+    const todayWo = Object.values(workouts).find(
       (w: Workout) => w.day.toLowerCase() === today.toLowerCase()
     );
     setTodayWorkout(todayWo || null);
-    setTodayExercises(todayWo?.exercises || []);
   }, []);
 
   const fetchWorkouts = async () => {
     if (!user) return;
-    if (workouts.length > 0) return;
+    if (Object.keys(workouts).length > 0) return;
     try {
       setLoading(true);
       const activeProfileId = user.currentProfileId;
@@ -59,7 +64,24 @@ const Dashboard = () => {
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
-      dispatch(setWorkouts(res.data.workouts));
+      // Add workouts to store
+      res.data.workouts.forEach((workout: WorkoutResponse) => {
+        const { exercises: workoutExercises, ...workoutData } = workout;
+        const exerciseIds = workoutExercises.map(e => e.id);
+        
+        dispatch(addWorkout({ ...workoutData, exerciseIds }));
+
+        // Add exercises and sets
+        workoutExercises.forEach((exercise) => {
+          const { sets, ...exerciseData } = exercise;
+          dispatch(addExercise(exerciseData));
+
+          sets.forEach((set) => {
+            dispatch(addSet(set));
+          });
+        });
+      });
+
       handleTodaysWorkout(res.data.workouts);
     } catch (err: any) {
       toast.error(
@@ -73,56 +95,43 @@ const Dashboard = () => {
 
   const handleExerciseAdded = (newExercise: Exercise) => {
     if (todayWorkout) {
-      // Update the exercises list
-      setTodayExercises((prev) => [...prev, newExercise]);
+      // Update the workout with the new exercise ID
+      dispatch(updateWorkout({
+        id: todayWorkout.id,
+        exerciseIds: [...(todayWorkout.exerciseIds || []), newExercise.id]
+      }));
 
-      // Update the workout object with the new exercise
-      const updatedWorkout = {
-        ...todayWorkout,
-        exercises: [...(todayWorkout.exercises || []), newExercise],
-      };
-      setTodayWorkout(updatedWorkout);
-
-      // Update the workouts in the redux store
-      const updatedWorkouts = workouts.map((w: Workout) =>
-        w.id === todayWorkout.id ? updatedWorkout : w
-      );
-      dispatch(setWorkouts(updatedWorkouts));
+      // Add the exercise to the store
+      dispatch(addExercise(newExercise));
     }
   };
 
   const handleExerciseDeleted = (exerciseId: string) => {
     if (todayWorkout) {
-      // Update the exercises list
-      const updatedExercises = todayExercises.filter(
-        (e) => e.id !== exerciseId
-      );
-      setTodayExercises(updatedExercises);
+      // Remove the exercise ID from the workout
+      dispatch(updateWorkout({
+        id: todayWorkout.id,
+        exerciseIds: todayWorkout.exerciseIds.filter(id => id !== exerciseId)
+      }));
 
-      // Update the workout object without the deleted exercise
-      const updatedWorkout = {
-        ...todayWorkout,
-        exercises: todayWorkout.exercises.filter((e) => e.id !== exerciseId),
-      };
-      setTodayWorkout(updatedWorkout);
-
-      // Update the redux store
-      dispatch(
-        deleteExerciseFromWorkout({ workoutId: todayWorkout.id, exerciseId })
-      );
+      // Remove the exercise from the store
+      dispatch(removeExercise(exerciseId));
     }
   };
 
   useEffect(() => {
     handleTodaysWorkout(workouts);
-  }, [workouts]);
+  }, [workouts, handleTodaysWorkout]);
 
   const handleWorkoutUpdate = (updatedWorkout: Workout) => {
-    const updatedWorkouts = workouts.map((w) =>
-      w.id === updatedWorkout.id ? updatedWorkout : w
-    );
-    dispatch(setWorkouts(updatedWorkouts));
+    dispatch(updateWorkout(updatedWorkout));
   };
+
+  const todayExercises = todayWorkout
+    ? todayWorkout.exerciseIds?.map(id => exercises[id]).filter(Boolean) || []
+    : [];
+
+  const workoutIds = Object.keys(workouts);
 
   return (
     <div className="space-y-6 max-w-screen-lg mx-auto p-2 md:p-4">
@@ -212,7 +221,7 @@ const Dashboard = () => {
               Other Workouts
             </h2>
             <WorkoutsList
-              workouts={workouts}
+              workoutIds={workoutIds}
               onWorkoutUpdate={handleWorkoutUpdate}
             />
           </div>

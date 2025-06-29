@@ -12,7 +12,7 @@ import LogoutDialog from "@/components/profile/LogoutDailog";
 import AddProfileDialog from "@/components/profile/AddProfileDialog";
 import ProfileSwitcher from "@/components/profile/ProfileSwitcher";
 import { WeightType, WeightUnit } from "@/types/workout";
-import { Gender } from "@/types/user";
+import { Gender, Profile as ProfileType } from "@/types/user";
 import {
   Select,
   SelectContent,
@@ -38,23 +38,23 @@ const Profile = () => {
     name: "",
     gender: undefined,
   });
-  const { token, email, currentProfileId } = useAppSelector(
+  const { token, email, currentProfileId, name, gender } = useAppSelector(
     (state) => state.auth
   );
-  const profiles = useAppSelector((state) => state.profile);
+  const profilesMap = useAppSelector((state) => state.profile.profiles);
+  const profiles = Object.values(profilesMap);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const user = useAppSelector((state) => state.auth);
-  const [currentProfile, setCurrentProfile] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<ProfileType | null>(null);
 
   useEffect(() => {
     if (currentProfile) {
       setEditableFields({
-        name: user?.name || "",
-        gender: (user?.gender as Gender) || undefined,
+        name: name || "",
+        gender: (gender as Gender) || undefined,
       });
     }
-  }, [currentProfile]);
+  }, [currentProfile, name, gender]);
 
   useEffect(() => {
     if (!token) {
@@ -63,7 +63,8 @@ const Profile = () => {
     }
 
     const fetchProfiles = async () => {
-      // if (profiles.length > 0) return;
+      if (Object.keys(profilesMap).length > 0) return;
+
       setIsLoading(true);
       const loadingToast = toast.loading("Loading profiles...");
       try {
@@ -85,7 +86,7 @@ const Profile = () => {
     };
 
     fetchProfiles();
-  }, [token, dispatch, navigate]);
+  }, [token, dispatch, navigate, profilesMap]);
 
   const handleSave = async () => {
     if (!currentProfile) return;
@@ -117,8 +118,8 @@ const Profile = () => {
   const handleCancel = () => {
     if (currentProfile) {
       setEditableFields({
-        name: currentProfile.name,
-        gender: currentProfile.gender,
+        name: name || "",
+        gender: (gender as Gender) || undefined,
       });
     }
     setIsEditing(false);
@@ -181,11 +182,10 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    console.log(currentProfileId);
     if (currentProfileId) {
-      setCurrentProfile(profiles.find((p) => p.id === currentProfileId));
+      setCurrentProfile(profilesMap[currentProfileId]);
     }
-  }, [currentProfileId, profiles]);
+  }, [currentProfileId, profilesMap]);
 
   return (
     <>
@@ -215,7 +215,7 @@ const Profile = () => {
               </div>
             ) : (
               <>
-                {profiles && profiles.length > 0 ? (
+                {profiles.length > 0 ? (
                   <div className="space-y-4">
                     <ProfileSwitcher />
                     {currentProfile && (
@@ -275,7 +275,7 @@ const Profile = () => {
                   </div>
                 )}
                 <div className="pt-4 grid md:grid-cols-2 gap-4 items-center">
-                  <DeleteProfileDialog profile={currentProfile} />
+                  {currentProfile && <DeleteProfileDialog profile={currentProfile} />}
                   <AddProfileDialog />
                 </div>
               </>

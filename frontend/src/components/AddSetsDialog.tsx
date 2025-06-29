@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import axios from "axios";
-import { useAppSelector } from "@/lib/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import { Exercise, Set, WeightType, WeightUnit } from "@/types/workout";
 import {
@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { weightMeasurements, weightUnits } from "@/lib/constants";
+import { allGymExercises, weightMeasurements, weightUnits } from "@/lib/constants";
+import { addSet } from "@/redux/slices/setSlice";
 
 interface AddSetsDialogProps {
   exercise: Exercise;
@@ -33,9 +34,10 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
     Array<{ reps: number; weight: number; unit: WeightUnit; weightType: WeightType }>
   >([{ reps: 0, weight: 0, unit: WeightUnit.KG, weightType: WeightType.PER_SIDE }]);
 
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth);
-  const profiles = useAppSelector((state) => state.profile);
-  const activeProfile = profiles.find(p => p.id === user.currentProfileId);
+  const profiles = useAppSelector((state) => state.profile.profiles);
+  const activeProfile = user.currentProfileId ? profiles[user.currentProfileId] : null;
 
   // Add another set input field
   const addSetInput = useCallback(() => {
@@ -99,7 +101,9 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
             }
           );
 
-          createdSets.push(response.data.set);
+          const newSet = response.data.set;
+          dispatch(addSet(newSet));
+          createdSets.push(newSet);
         }
 
         toast.success(`${validSets.length} sets added successfully!`);
@@ -124,7 +128,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
         setLoading(false);
       }
     },
-    [setInputs, exercise.id, user.token, onSetsAdded, activeProfile]
+    [setInputs, exercise.id, user.token, user.currentProfileId, dispatch, onSetsAdded, activeProfile]
   );
 
   return (
@@ -138,13 +142,13 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center mb-2">Add Sets for {exercise.name}</DialogTitle>
+            <DialogTitle className="text-center mb-2">Add Sets for { allGymExercises.find((e) => e.value === exercise.name)?.label || exercise.name }</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="space-y-3">
               {setInputs.map((setInput, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 grid gap-2">
+                <div key={index} className="flex items-center gap-2 relative">
+                  <div className={`flex-1 grid gap-2 ${index > 0 ? "mt-1 bg-gray-100 rounded-md p-2" : ""}`}>
                     <div className="grid grid-cols-2 gap-1">
                       <Label htmlFor={`reps-${index}`} className="text-xs">
                         Reps {index + 1}
@@ -231,7 +235,7 @@ const AddSetsDialog: React.FC<AddSetsDialogProps> = ({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 mt-5"
+                      className="h-8 w-8 absolute bg-white rounded-md shadow-md -right-3 -top-3"
                       onClick={() => removeSetInput(index)}
                     >
                       <X size={16} className="text-red-500" />

@@ -11,6 +11,8 @@ import Layout from "./components/Layout";
 import Profile from "./pages/Profile/Profile";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./App.css";
+import LandingPage from "./pages/landingPage/LandingPage";
+
 
 const App = () => {
   const GOOGLE_OAUTH_CLIENT_ID = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID;
@@ -21,13 +23,14 @@ const App = () => {
         <Toaster position="top-center" />
         <Routes>
           <Route element={<AuthRoutes />}>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
 
           <Route element={<PrivateRoutes />}>
             <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/workouts" element={<Workouts />} />
               <Route path="/profile" element={<Profile />} />
             </Route>

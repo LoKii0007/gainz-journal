@@ -7,7 +7,7 @@ const AuthRoutes = () => {
 
   // If user is already authenticated, redirect to dashboard
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Otherwise, render login/register routes

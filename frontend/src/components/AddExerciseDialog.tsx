@@ -5,10 +5,13 @@ import { DialogHeader, DialogTitle } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import axios from "axios";
-import { useAppSelector } from "@/lib/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
 import { Exercise, Workout } from "@/types/workout";
 import { SearchDropdown } from "./SearchDropdown";
+import { addExercise } from "@/redux/slices/exerciseSlice";
+import { updateWorkout } from "@/redux/slices/workoutSlice";
+
 interface AddExerciseDialogProps {
   workout: Workout;
   onExerciseAdded?: (exercise: Exercise) => void;
@@ -24,6 +27,7 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth);
 
   // Handle form submission
@@ -53,6 +57,17 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
           }
         );
 
+        const newExercise = response.data.exercise;
+
+        // Add exercise to Redux store
+        dispatch(addExercise(newExercise));
+
+        // Update workout's exerciseIds
+        dispatch(updateWorkout({
+          id: workout.id,
+          exerciseIds: [...(workout.exerciseIds || []), newExercise.id]
+        }));
+
         toast.success("Exercise added successfully!");
 
         // Reset form
@@ -60,8 +75,8 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
         setIsOpen(false);
 
         // Callback to parent component if provided
-        if (onExerciseAdded && response.data.exercise) {
-          onExerciseAdded(response.data.exercise);
+        if (onExerciseAdded && newExercise) {
+          onExerciseAdded(newExercise);
         }
       } catch (error: any) {
         console.error("Error adding exercise:", error);
@@ -70,7 +85,7 @@ const AddExerciseDialog: React.FC<AddExerciseDialogProps> = ({
         setLoading(false);
       }
     },
-    [exerciseName, workout.id, user.token, onExerciseAdded]
+    [exerciseName, workout, user.token, user.currentProfileId, dispatch, onExerciseAdded]
   );
 
   return (

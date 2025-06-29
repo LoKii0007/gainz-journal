@@ -11,8 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { deleteProfile, updateProfile } from "@/redux/slices/profileSlice";
-import { deleteWorkout } from "@/redux/slices/workoutSlice";
+import { removeProfile, updateProfile } from "@/redux/slices/profileSlice";
+import { deleteWorkoutWithExercises } from "@/redux/slices/workoutSlice";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -20,41 +20,53 @@ import toast from "react-hot-toast";
 import { Profile } from "@/types/user";
 import { updateProfileId } from "@/redux/slices/authSlice";
 
-const DeleteProfileDialog = ({ profile }: { profile: any }) => {
+interface DeleteProfileDialogProps {
+  profile: Profile;
+}
+
+const DeleteProfileDialog = ({ profile }: DeleteProfileDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch();
-  const profiles = useAppSelector((state) => state.profile);
-  const token = useAppSelector((state) => state.auth.token);
+  const { token } = useAppSelector((state) => state.auth);
 
   const handleDelete = async () => {
     try {
       setLoading(true);
-      console.log(profile);
+      const loadingToast = toast.loading("Deleting profile...");
+
+      // Delete profile from backend
       const res = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/profile/${profile.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      const activeProfile = profiles.find((p) => p.id === profile.id);
-      if (activeProfile) {
-        activeProfile.workouts.forEach((w: any) => {
-          dispatch(deleteWorkout(w.id));
-        });
+
+      // Delete all workouts associated with this profile
+      if (profile.workoutIds) {
+        for (const workoutId of profile.workoutIds) {
+          dispatch(deleteWorkoutWithExercises(workoutId));
+        }
       }
-      const payload = res.data.activeProfile as Profile;
+
+      // Update active profile
+      const newActiveProfile = res.data.activeProfile as Profile;
       dispatch(
         updateProfile({
-          ...payload,
+          ...newActiveProfile,
           active: true,
         })
       );
-      dispatch(updateProfileId(payload.id));
-      dispatch(deleteProfile(profile.id));
+      dispatch(updateProfileId(newActiveProfile.id));
+      
+      // Remove the deleted profile
+      dispatch(removeProfile(profile.id));
+
+      toast.success("Profile deleted successfully", { id: loadingToast });
     } catch (error: any) {
-      console.log(error);
-      toast.error("Something went wrong");
+      console.error("Error deleting profile:", error);
+      toast.error(error.response?.data?.message || "Failed to delete profile");
     } finally {
       setLoading(false);
       setIsOpen(false);
@@ -73,8 +85,8 @@ const DeleteProfileDialog = ({ profile }: { profile: any }) => {
           <DialogTitle>Delete Profile</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          Are you sure you want to delete this profile? Related workouts and
-          exercises will be deleted.
+          Are you sure you want to delete this profile? All associated workouts and
+          exercises will be permanently deleted.
         </DialogDescription>
         <DialogFooter className="grid grid-cols-2 gap-6">
           <Button

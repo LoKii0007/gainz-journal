@@ -22,6 +22,11 @@ const storageConfigs: StorageConfig[] = [
     slicePrefix: 'profile/',
     storageKey: 'profiles',
     selector: (state: RootState) => state.profile
+  },
+  {
+    slicePrefix: 'sets/',
+    storageKey: 'sets',
+    selector: (state: RootState) => state.set.sets
   }
 ];
 

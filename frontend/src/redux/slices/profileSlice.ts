@@ -1,44 +1,35 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Profile } from "@/types/user";
 
-// Load initial state from localStorage
-const loadInitialState = (): Profile[] => {
-  try {
-    const savedProfiles = localStorage.getItem('profiles');
-    return savedProfiles ? JSON.parse(savedProfiles) : [];
-  } catch (error) {
-    console.error('Failed to load profiles from localStorage:', error);
-    return [];
-  }
-};
+interface ProfileState {
+  profiles: Record<string, Profile>;
+}
+
+const initialState: ProfileState = { profiles: {} };
 
 const profileSlice = createSlice({
-  name: "profile",
-  initialState: loadInitialState(),
+  name: "profiles",
+  initialState,
   reducers: {
-    setProfiles: (_state, action: PayloadAction<Profile[]>) => {
-      return action.payload;
+    addProfile(state, action: PayloadAction<Profile>) {
+      state.profiles[action.payload.id] = action.payload;
     },
-    addProfile: (state, action: PayloadAction<Profile>) => {
-      state.push(action.payload);
+    updateProfile(state, action: PayloadAction<Partial<Profile> & { id: string }>) {
+      const { id, ...rest } = action.payload;
+      state.profiles[id] = { ...state.profiles[id], ...rest };
     },
-    updateProfile: (state, action: PayloadAction<Profile>) => {
-      const index = state.findIndex((p : Profile) => p.id === action.payload.id);
-      if (index !== -1) {
-        state[index] = action.payload;
-      }
+    removeProfile(state, action: PayloadAction<string>) {
+      delete state.profiles[action.payload];
     },
-    deleteProfile: (state, action: PayloadAction<string>) => {
-      state = state.filter((p : Profile) => p.id !== action.payload);
+    setProfiles(state, action: PayloadAction<Profile[]>) {
+      // Convert array to normalized object
+      state.profiles = action.payload.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, Profile>);
     },
   },
 });
 
-export const {
-  setProfiles,
-  addProfile,
-  updateProfile,
-  deleteProfile,
-} = profileSlice.actions;
-
-export default profileSlice.reducer; 
+export const { addProfile, updateProfile, removeProfile, setProfiles } = profileSlice.actions;
+export default profileSlice.reducer;

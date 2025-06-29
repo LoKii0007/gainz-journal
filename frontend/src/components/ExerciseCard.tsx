@@ -20,7 +20,7 @@ import {
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { useAppSelector } from "@/lib/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { groupBy } from "lodash";
@@ -38,6 +38,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { getColorByIndex } from "@/utils/helper";
+import { addSet, removeSet, updateSet } from "@/redux/slices/setSlice";
+
 interface ExerciseCardProps {
   exercise: Exercise;
   onExerciseDeleted?: (exerciseId: string) => void;
@@ -59,7 +61,13 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
   const [newWeight, setNewWeight] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth);
+  const sets = useAppSelector((state) => state.set.sets);
+
+  const exerciseSets = useMemo(() => {
+    return Object.values(sets).filter(set => set.exerciseId === exercise.id) as Set[];
+  }, [sets, exercise.id]);
 
   const dayStart = useMemo(() => {
     const today = new Date();
@@ -69,10 +77,9 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
 
   // Handle sets being added
   const handleSetsAdded = (newSets: Set[]) => {
-    setExercise((prev) => ({
-      ...prev,
-      sets: [...prev.sets, ...newSets],
-    }));
+    newSets.forEach(set => {
+      dispatch(addSet(set));
+    });
   };
 
   // Open edit dialog for a set
@@ -107,13 +114,8 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
-      // Update local state with updated set
-      setExercise((prev) => ({
-        ...prev,
-        sets: prev.sets.map((set) =>
-          set.id === editingSet.id ? { ...response.data.set } : set
-        ),
-      }));
+      // Update set in Redux store
+      dispatch(updateSet(response.data.set));
 
       toast.success("Set updated successfully");
       setIsEditDialogOpen(false);
@@ -136,11 +138,8 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
-      // Remove the deleted set from local state
-      setExercise((prev) => ({
-        ...prev,
-        sets: prev.sets.filter((set) => set.id !== deletingSet.id),
-      }));
+      // Remove set from Redux store
+      dispatch(removeSet(deletingSet.id));
 
       toast.success("Set deleted successfully");
       setIsDeleteDialogOpen(false);
@@ -161,6 +160,11 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
+      // Delete all associated sets
+      exerciseSets.forEach(set => {
+        dispatch(removeSet(set.id));
+      });
+
       toast.success("Exercise deleted successfully");
       setIsDeleteExerciseDialogOpen(false);
 
@@ -176,12 +180,12 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
   };
 
   const setsHistory = useMemo(() => {
-    const filteredSets = exercise.sets.filter(
-      (s) => new Date(s.createdAt) < dayStart
+    const filteredSets = exerciseSets.filter(
+      (s: Set) => new Date(s.createdAt) < dayStart
     );
 
     // Group sets by date string (e.g., '2025-05-03')
-    const groupedByDay = groupBy(filteredSets, (s) => {
+    const groupedByDay = groupBy(filteredSets, (s: Set) => {
       const date = new Date(s.createdAt);
       return date.toISOString().split("T")[0]; // formats to YYYY-MM-DD
     });
@@ -190,11 +194,11 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
     return Object.entries(groupedByDay)
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
       .map(([_, sets]) => sets);
-  }, [exercise.sets, dayStart]);
+  }, [exerciseSets, dayStart]);
 
   const formatWeight = (set: Set) => {
     const weightType =
-      set.weightType === WeightType.PER_SIDE ? "per side" : "total";
+      set.weightType === WeightType.PER_SIDE ? "/Side" : "Total";
     return `${set.weight} ${set.unit.toLowerCase()} ${weightType}`;
   };
 
@@ -226,7 +230,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
           </div>
         </CardHeader>
         <CardContent>
-          {exercise.sets.length > 0 ? (
+          {exerciseSets.length > 0 ? (
             <div className="space-y-1">
               <div className="grid grid-cols-12 text-xs text-muted-foreground">
                 <div className="col-span-1">#</div>
@@ -234,7 +238,7 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
                 <div className="col-span-4">Weight</div>
                 <div className="col-span-4">Actions</div>
               </div>
-              {exercise.sets
+              {exerciseSets
                 .filter((s) => new Date(s.createdAt) > dayStart)
                 .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                 .map((set, index) => (
@@ -459,10 +463,10 @@ const ExerciseCard: React.FC<ExerciseCardProps & { index: number }> = ({
           <div className="py-3">
             <p>
               Are you sure you want to delete the exercise{" "}
-              <span className="font-semibold">{exercise.name}</span>?
+              <span className="font-semibold">{allGymExercises.find((e) => e.value === exercise.name)?.label || exercise.name}</span>?
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              This will permanently delete all {exercise.sets.length} sets
+              This will permanently delete all {exerciseSets.length} sets
               associated with this exercise.
             </p>
             <p className="text-sm text-red-500 mt-2 font-medium">

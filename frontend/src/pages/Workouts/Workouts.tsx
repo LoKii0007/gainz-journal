@@ -4,15 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import WorkoutsList from "@/components/WorkoutsList";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setWorkouts } from "@/redux/slices/workoutSlice";
+import { addWorkout, updateWorkout } from "@/redux/slices/workoutSlice";
+import { addExercise } from "@/redux/slices/exerciseSlice";
+import { addSet } from "@/redux/slices/setSlice";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Workout } from "@/types/workout";
+import { Workout, Exercise, Set } from "@/types/workout";
+
+interface WorkoutResponse extends Omit<Workout, 'exerciseIds'> {
+  exercises: (Exercise & { sets: Set[] })[];
+}
 
 const Workouts = () => {
   const dispatch = useAppDispatch();
-  const user  = useAppSelector((state) => state.auth);
-  const workouts = useAppSelector((state) => state.workout);
+  const user = useAppSelector((state) => state.auth);
+  const workouts = useAppSelector((state) => state.workout.workouts);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -23,7 +29,7 @@ const Workouts = () => {
 
   const fetchWorkouts = async () => {
     if (!user) return;
-    if (workouts.length > 0) return;
+    if (Object.keys(workouts).length > 0) return;
 
     try {
       setLoading(true);
@@ -35,7 +41,24 @@ const Workouts = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/profile/${activeProfileId}`,
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      dispatch(setWorkouts(res.data.workouts));
+
+      // Add workouts to store
+      res.data.workouts.forEach((workout: WorkoutResponse) => {
+        const { exercises, ...workoutData } = workout;
+        const exerciseIds = exercises.map(e => e.id);
+        
+        dispatch(addWorkout({ ...workoutData, exerciseIds }));
+
+        // Add exercises and sets
+        exercises.forEach((exercise) => {
+          const { sets, ...exerciseData } = exercise;
+          dispatch(addExercise(exerciseData));
+
+          sets.forEach((set) => {
+            dispatch(addSet(set));
+          });
+        });
+      });
     } catch (err: any) {
       toast.error(
         err.response?.data?.error ||
@@ -47,11 +70,10 @@ const Workouts = () => {
   };
 
   const handleWorkoutUpdate = (updatedWorkout: Workout) => {
-    const updatedWorkouts = workouts.map((w) =>
-      w.id === updatedWorkout.id ? updatedWorkout : w
-    );
-    dispatch(setWorkouts(updatedWorkouts));
+    dispatch(updateWorkout(updatedWorkout));
   };
+
+  const workoutIds = Object.keys(workouts);
 
   return (
     <div className="container mx-auto p-4 space-y-6 max-w-4xl h-full">
@@ -71,7 +93,7 @@ const Workouts = () => {
         </div>
       ) : (
         <WorkoutsList
-          workouts={workouts}
+          workoutIds={workoutIds}
           onWorkoutUpdate={handleWorkoutUpdate}
         />
       )}

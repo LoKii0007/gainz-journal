@@ -1,4 +1,4 @@
-import { Workout, WeightUnit, WeightType } from "./workout";
+import { WeightUnit, WeightType } from "./workout";
 
 export enum Gender {
   MALE = "MALE",
@@ -13,9 +13,9 @@ export interface Profile {
   gender?: Gender;
   weightUnit: WeightUnit;
   weightType: WeightType;
-  workouts: Workout[];
   createdAt: string;
   updatedAt: string;
+  workoutIds: string[];
 }
 
 export interface User {

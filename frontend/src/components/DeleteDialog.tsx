@@ -12,12 +12,17 @@ import { Button } from "./ui/button";
 import { useAppSelector } from "@/lib/hooks";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { deleteWorkout } from "@/redux/slices/workoutSlice";
+import { removeWorkout } from "@/redux/slices/workoutSlice";
+import { removeExercise } from "@/redux/slices/exerciseSlice";
+import { removeSet } from "@/redux/slices/setSlice";
 import { useAppDispatch } from "@/lib/hooks";
 
 const DeleteDialog = React.memo(({ workoutId }: { workoutId: string }) => {
   const dispatch = useAppDispatch();
   const { token } = useAppSelector((state) => state.auth);
+  const workout = useAppSelector((state) => state.workout.workouts[workoutId]);
+  const exercises = useAppSelector((state) => state.exercise.exercises);
+  const sets = useAppSelector((state) => state.set.sets);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -33,8 +38,24 @@ const DeleteDialog = React.memo(({ workoutId }: { workoutId: string }) => {
         }
       );
 
+      // Delete all associated exercises and sets
+      workout.exerciseIds?.forEach(exerciseId => {
+        const exercise = exercises[exerciseId];
+        if (exercise) {
+          // Delete all sets for this exercise
+          Object.values(sets).forEach(set => {
+            if (set.exerciseId === exerciseId) {
+              dispatch(removeSet(set.id));
+            }
+          });
+          dispatch(removeExercise(exerciseId));
+        }
+      });
+
+      // Delete the workout
+      dispatch(removeWorkout(workoutId));
+
       toast.success("Workout deleted successfully");
-      dispatch(deleteWorkout(workoutId));
       setIsOpen(false);
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to delete workout");
